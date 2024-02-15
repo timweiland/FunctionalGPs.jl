@@ -3,11 +3,34 @@ uuid = "2199f16a-97f8-403e-8ac7-780e495e7dcb"
 authors = ["Tim Weiland <hello@timwei.land> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+KernelFunctions = "ec8451be-7e33-11e9-00cf-bbf324bd1392"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+NearestNeighbors = "b8a86587-4115-5ab1-83bc-aa920d37bbce"
+Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
 [compat]
+AbstractGPs = "0.5"
+Aqua = "0.8"
+Distances = "0.10"
+FiniteDifferences = "0.12"
+KernelFunctions = "0.10"
+LinearAlgebra = "1"
+NearestNeighbors = "0.4"
+Polynomials = "4"
+Random = "1"
+SparseArrays = "1.10"
+Test = "1"
 julia = "1"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "Aqua", "FiniteDifferences", "Random", "SparseArrays"]
