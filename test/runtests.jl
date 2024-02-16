@@ -10,6 +10,7 @@ import SparseArrays.CHOLMOD.Factor as SparseCholFactor
     include("kernels/test_wendland.jl")
 
     include("linearfunctionoperators/arithmetic/test_concatenate.jl")
+    include("linearfunctionoperators/test_evaluation.jl")
 
     Aqua.test_all(GaussPDE; piracies=false, ambiguities=false)
     Aqua.test_piracies(GaussPDE; treat_as_own=[SparseCholFactor])
