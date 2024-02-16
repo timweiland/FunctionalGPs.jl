@@ -17,4 +17,6 @@ include("kernels/wendland.jl")
 include("kernels/wendland_covmat_ops.jl")
 
 include("linearfunctionoperators/linear_function_operator.jl")
+include("factorized_grid.jl")
+
 end
