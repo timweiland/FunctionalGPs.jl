@@ -9,6 +9,7 @@ include("kernels/wendland.jl")
 include("kernels/wendland_covmat_ops.jl")
 
 include("linearfunctionoperators/linear_function_operator.jl")
+include("linearfunctionoperators/arithmetic/concatenate.jl")
 include("linearfunctionoperators/arithmetic/sum.jl")
 include("linearfunctionoperators/differential_operators/differential_operator.jl")
 include("linearfunctionoperators/differential_operators/partial_derivative.jl")

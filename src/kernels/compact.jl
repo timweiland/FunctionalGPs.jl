@@ -5,7 +5,8 @@ import KernelFunctions: kernelmatrix, ColVecs, RowVecs
 import NearestNeighbors: BallTree, inrange, NNTree
 import SparseArrays.sparse
 
-export AbstractCompactKernel, AbstractCompactRadialKernel, AbstractCompactSignedRadialKernel
+export AbstractCompactKernel,
+    AbstractCompactRadialKernel, AbstractCompactSignedRadialKernel
 export CompactPolynomialKernel, CompactSignedPolynomialKernel
 export derivative
 
@@ -42,7 +43,9 @@ SearchTree(x::ColVecs, metric::Distances.UnionMetric) = BallTree(x.X, metric)
 function SearchTree(x::AbstractVector{T}, metric::Distances.UnionMetric) where {T<:Number}
     return BallTree(convert(Matrix{Float64}, reshape(x, 1, :)), metric)
 end
-inrange_point(tree::NNTree, point::T, radius::Number) where {T<:Number} = inrange(tree, [point], radius)
+function inrange_point(tree::NNTree, point::T, radius::Number) where {T<:Number}
+    return inrange(tree, [point], radius)
+end
 inrange_point(tree::NNTree, point, radius::Number) = inrange(tree, point, radius)
 
 function kernelmatrix(k::AbstractCompactKernel, x::AbstractVector, y::AbstractVector)
@@ -127,6 +130,10 @@ end
 lengthscales(k::CompactPolynomialKernel) = k.lengthscales
 k_r(k::CompactPolynomialKernel, r::Number) = k.poly(r)
 
+function Base.:(==)(k1::CompactPolynomialKernel, k2::CompactPolynomialKernel)
+    return k1.poly == k2.poly && k1.lengthscales == k2.lengthscales
+end
+
 """
     struct CompactSignedPolynomialKernel{T<:Number, X <: Number} <: AbstractCompactSignedRadialKernel{X}
 
@@ -150,6 +157,10 @@ function CompactSignedPolynomialKernel(poly::Polynomial{T}) where {T<:Number}
 end
 lengthscales(k::CompactSignedPolynomialKernel) = k.lengthscales
 k_r(k::CompactSignedPolynomialKernel, r::Number) = k.poly(r)
+
+function Base.:(==)(k1::CompactSignedPolynomialKernel, k2::CompactSignedPolynomialKernel)
+    return k1.poly == k2.poly && k1.lengthscales == k2.lengthscales
+end
 
 """
     derivative(k::CompactPolynomialKernel, n::Int, m::Int)

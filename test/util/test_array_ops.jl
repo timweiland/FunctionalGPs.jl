@@ -1,5 +1,6 @@
 using Test
 using GaussPDE
+import Random: seed!
 
 @testset "Array ops" begin
     seed!(89345023)
