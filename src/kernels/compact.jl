@@ -3,6 +3,7 @@ import KernelFunctions
 import Distances
 import KernelFunctions: kernelmatrix, ColVecs, RowVecs
 import NearestNeighbors: BallTree, inrange, NNTree
+import SparseArrays.sparse
 
 export AbstractCompactKernel, AbstractCompactRadialKernel, AbstractCompactSignedRadialKernel
 export CompactPolynomialKernel, CompactSignedPolynomialKernel
@@ -169,5 +170,12 @@ function derivative(k::CompactPolynomialKernel, n::Int, m::Int)
     total = n + m
     poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
     return iseven(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
+           CompactSignedPolynomialKernel(poly, k.lengthscales)
+end
+
+function derivative(k::CompactSignedPolynomialKernel, n::Int, m::Int)
+    total = n + m
+    poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
+    return isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
            CompactSignedPolynomialKernel(poly, k.lengthscales)
 end
