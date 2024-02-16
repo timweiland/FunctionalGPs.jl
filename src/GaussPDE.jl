@@ -10,6 +10,8 @@ export Xt_A_X, Xt_A_Y, Xt_invA_X, Xt_invA_Y, diag_Xt_A_X, diag_Xt_A_Y, diag_Xt_i
 
 using LinearAlgebra
 
+include("util/array_ops.jl")
+
 include("kernels/compact.jl")
 include("kernels/wendland.jl")
 include("kernels/wendland_covmat_ops.jl")
