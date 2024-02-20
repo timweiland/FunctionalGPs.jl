@@ -1,4 +1,4 @@
-using Test
+using ReTest
 using GaussPDE
 import Random: seed!
 

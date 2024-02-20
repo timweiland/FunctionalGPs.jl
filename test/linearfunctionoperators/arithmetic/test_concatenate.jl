@@ -1,6 +1,6 @@
 using GaussPDE
 using KernelFunctions
-using Test
+using ReTest
 
 @testset "ConcatenatedLinearFunctionOperator" begin
     k₁ = WendlandKernel(1, 3)

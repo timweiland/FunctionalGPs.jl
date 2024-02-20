@@ -1,5 +1,5 @@
 using GaussPDE
-using Test
+using ReTest
 using Random: seed!
 
 @testset "EvaluationFunctional" begin
