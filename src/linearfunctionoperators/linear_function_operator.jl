@@ -1,3 +1,3 @@
-import KernelFunctions: Kernel, KernelTensorProduct
+export AbstractLinearFunctionOperator
 
 abstract type AbstractLinearFunctionOperator end

@@ -1,7 +1,12 @@
 export EvaluationFunctional
 
-struct EvaluationFunctional <: AbstractLinearFunctionOperator
+struct EvaluationFunctional <: AbstractLinearFunctional
     X::AbstractVector
+    output_shape::Tuple{Vararg{Integer}}
+end
+
+function EvaluationFunctional(X::AbstractVector)
+    return EvaluationFunctional(X, size(X))
 end
 
 function (op::EvaluationFunctional)(k::Kernel; arg::Integer = 2)

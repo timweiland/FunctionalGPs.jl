@@ -17,7 +17,9 @@ include("linearfunctionoperators/arithmetic/sum.jl")
 include("linearfunctionoperators/differential_operators/differential_operator.jl")
 include("linearfunctionoperators/differential_operators/partial_derivative.jl")
 include("linearfunctionoperators/differential_operators/linear_diffop.jl")
-include("linearfunctionoperators/evaluation.jl")
+
+include("linear_functionals/linear_functional.jl")
+include("linear_functionals/evaluation.jl")
 
 include("factorized_grid.jl")
 
