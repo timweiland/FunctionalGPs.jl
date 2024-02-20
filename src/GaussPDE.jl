@@ -22,6 +22,7 @@ include("linearfunctionoperators/differential_operators/linear_diffop.jl")
 
 include("linear_functionals/linear_functional.jl")
 include("linear_functionals/evaluation.jl")
+include("linear_functionals/arithmetic/concatenate.jl")
 
 include("factorized_grid.jl")
 
