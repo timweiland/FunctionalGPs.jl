@@ -1,4 +1,5 @@
 export PartialDerivative
+using KernelFunctions
 
 struct PartialDerivative{N,M} <: AbstractDifferentialOperator
     output_idx::Integer
@@ -13,6 +14,19 @@ struct PartialDerivative{N,M} <: AbstractDifferentialOperator
         order = sum(multi_idx)
         return new(output_idx, multi_idx, order)
     end
+end
+
+function PartialDerivative(
+    multi_idx::NTuple{M,Integer},
+) where {M}
+    return PartialDerivative{1,M}(1, multi_idx)
+end
+
+function PartialDerivative{N}(
+    output_idx::Integer,
+    multi_idx::NTuple{M,Integer},
+) where {N,M}
+    return PartialDerivative{N,M}(output_idx, multi_idx)
 end
 
 UNDERSCORE_CODE_START = 0x2080
