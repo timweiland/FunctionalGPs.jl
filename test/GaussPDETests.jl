@@ -4,6 +4,7 @@ using GaussPDE
 using ReTest
 using Aqua
 import SparseArrays.CHOLMOD.Factor as SparseCholFactor
+using Distributions: MvNormal
 
 include("util/test_array_ops.jl")
 include("test_factorized_grid.jl")
@@ -15,7 +16,7 @@ include("linearfunctionoperators/test_evaluation.jl")
 
 @testset "Aqua" begin
     Aqua.test_all(GaussPDE; piracies = false, ambiguities = false)
-    Aqua.test_piracies(GaussPDE; treat_as_own = [SparseCholFactor])
+    Aqua.test_piracies(GaussPDE; treat_as_own = [MvNormal, SparseCholFactor])
     @test length(Test.detect_ambiguities(GaussPDE)) == 0
 end
 

@@ -28,5 +28,6 @@ include("linear_functionals/arithmetic/sum.jl")
 include("factorized_grid.jl")
 
 include("randprocs/linfctl_transformed_gp.jl")
+include("randprocs/linear_conditional_gp.jl")
 
 end
