@@ -3,6 +3,7 @@ module GaussPDE
 using LinearAlgebra
 
 include("util/array_ops.jl")
+include("util/unified_cholesky.jl")
 
 include("kernels/compact.jl")
 include("kernels/wendland.jl")
@@ -23,5 +24,7 @@ include("linear_functionals/linear_functional.jl")
 include("linear_functionals/evaluation.jl")
 
 include("factorized_grid.jl")
+
+include("randprocs/linfctl_transformed_gp.jl")
 
 end
