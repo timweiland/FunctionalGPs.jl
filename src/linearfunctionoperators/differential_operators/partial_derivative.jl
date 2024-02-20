@@ -74,12 +74,12 @@ end
 
 function (op::PartialDerivative{1,1})(
     k::Union{CompactPolynomialKernel,CompactSignedPolynomialKernel};
-    arg::Integer = 1,
+    arg::Integer = 2,
 )
-    if arg ∉ [0, 1]
-        return error("arg must be 0 or 1")
+    if arg ∉ [1, 2]
+        return error("arg must be 1 or 2")
     end
-    if arg == 0
+    if arg == 1
         return derivative(k, op.order, 0)
     else
         return derivative(k, 0, op.order)
