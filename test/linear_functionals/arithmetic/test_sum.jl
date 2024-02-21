@@ -20,7 +20,8 @@ import KernelFunctions: kernelmatrix
     sum_fctl = δ1 + δ2
     @test sum_fctl(f.mean) == δ1(f.mean) + δ2(f.mean)
     @test sum_fctl(δ3(f.kernel)) ≈ δ1(δ3(f.kernel)) + δ2(δ3(f.kernel))
-    @test sum_fctl(sum_fctl(f.kernel)) ≈ δ1(δ1(f.kernel)) + δ1(δ2(f.kernel)) + δ2(δ1(f.kernel)) + δ2(δ2(f.kernel))
+    @test sum_fctl(sum_fctl(f.kernel)) ≈
+          δ1(δ1(f.kernel)) + δ1(δ2(f.kernel)) + δ2(δ1(f.kernel)) + δ2(δ2(f.kernel))
 
     stacked = StackedPVCrosscov([δ1(f.kernel), δ2(f.kernel)])
     sum_stacked = sum_fctl(stacked)
@@ -28,5 +29,8 @@ import KernelFunctions: kernelmatrix
 
     sum_f = sum_fctl(f)
     @test mean(sum_f) ≈ δ1(f.mean) + δ2(f.mean)
-    @test cov(sum_f) ≈ δ1(δ1(f.kernel)) + δ1(δ2(f.kernel)) + δ2(δ1(f.kernel)) + δ2(δ2(f.kernel))
+    @test cov(sum_f) ≈
+          δ1(δ1(f.kernel)) + δ1(δ2(f.kernel)) + δ2(δ1(f.kernel)) + δ2(δ2(f.kernel))
+
+    @test string(sum_fctl) == "($(string(δ1))) + ($(string(δ2)))"
 end

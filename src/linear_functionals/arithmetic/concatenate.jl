@@ -2,7 +2,7 @@ using AbstractGPs: AbstractGP
 
 export AbstractLinFctlLinFuncOpConcat, LinFctlLinFuncOpConcat
 
-abstract type AbstractLinFctlLinFuncOpConcat <: AbstractLinearFunctional end
+abstract type AbstractLinFctlLinFuncOpConcat{N} <: AbstractLinearFunctional end
 linfctl(op::AbstractLinFctlLinFuncOpConcat) = op.linfctl
 linfuncops(op::AbstractLinFctlLinFuncOpConcat) = op.linfuncops
 output_shape(op::AbstractLinFctlLinFuncOpConcat) = output_shape(linfctl(op))
@@ -34,9 +34,16 @@ function Base.show(io::IO, op::AbstractLinFctlLinFuncOpConcat)
     )
 end
 
-struct LinFctlLinFuncOpConcat{N} <: AbstractLinFctlLinFuncOpConcat
+struct LinFctlLinFuncOpConcat{N} <: AbstractLinFctlLinFuncOpConcat{N}
     linfctl::AbstractLinearFunctional
     linfuncops::NTuple{N,AbstractLinearFunctionOperator}
+
+    function LinFctlLinFuncOpConcat(
+        linfctl::AbstractLinearFunctional,
+        linfuncops::NTuple{N,AbstractLinearFunctionOperator},
+    ) where {N}
+        new{N}(linfctl, linfuncops)
+    end
 end
 
 function Base.:∘(op1::AbstractLinearFunctional, op2::AbstractLinearFunctionOperator)
