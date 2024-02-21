@@ -7,6 +7,8 @@ import SparseArrays.CHOLMOD.Factor as SparseCholFactor
 using Distributions: MvNormal
 
 include("util/test_array_ops.jl")
+include("util/test_unified_cholesky.jl")
+
 include("test_factorized_grid.jl")
 
 include("kernels/test_wendland.jl")
