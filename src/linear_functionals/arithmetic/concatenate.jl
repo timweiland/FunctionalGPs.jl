@@ -21,6 +21,7 @@ function (op::AbstractLinFctlLinFuncOpConcat)(::ZeroMean{T}, args...) where {T}
 end
 (op::AbstractLinFctlLinFuncOpConcat)(pv::StackedPVCrosscov) = _fallback(op, pv)
 (op::AbstractLinFctlLinFuncOpConcat)(pv::EvaluationPVCrosscov) = _fallback(op, pv)
+(op::AbstractLinFctlLinFuncOpConcat)(x::AbstractSumPVCrosscov) = _fallback(op, x)
 function (ℒ::AbstractLinFctlLinFuncOpConcat)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
     return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
 end

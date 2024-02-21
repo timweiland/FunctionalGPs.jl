@@ -13,7 +13,7 @@ function Base.show(io::IO, op::AbstractSumPVCrosscov)
     return print(io, join(["$(string(summand))" for summand in summands(op)], " + "))
 end
 
-function kernelmatrix(op::AbstractSumPVCrosscov, x::AbstractArray)
+function kernelmatrix(op::AbstractSumPVCrosscov, x::AbstractVector)
     return sum([kernelmatrix(summand, x) for summand in summands(op)])
 end
 
