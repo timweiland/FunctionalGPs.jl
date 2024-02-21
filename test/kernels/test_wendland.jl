@@ -77,4 +77,37 @@ const FD_ORDER = 16
             end
         end
     end
+
+    @testset "Consistency of concatenated derivatives" begin
+        ℓ = 7 // 10
+    
+        @testset "d = $d, k=$k" for (d, k) in Iterators.product(1:2:5, 2:3)
+            w = WendlandKernel(d, k, ℓ)
+            D2k = GaussPDE.derivative(w, 2, 0)
+            D2k_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 0), 1, 0)
+            @test D2k == D2k_concat
+
+            Dk2 = GaussPDE.derivative(w, 0, 2)
+            Dk2_concat = GaussPDE.derivative(GaussPDE.derivative(w, 0, 1), 0, 1)
+            @test Dk2 == Dk2_concat
+
+            DkD = GaussPDE.derivative(w, 1, 1)
+            DkD_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 0), 0, 1)
+            @test DkD == DkD_concat
+
+            if k == 3
+                D3 = GaussPDE.derivative(w, 3, 0)
+                D3_concat = GaussPDE.derivative(GaussPDE.derivative(w, 2, 0), 1, 0)
+                @test D3 == D3_concat
+
+                D2kD = GaussPDE.derivative(w, 2, 1)
+                D2kD_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 1), 1, 0)
+                @test D2kD == D2kD_concat
+
+                Dk2D = GaussPDE.derivative(w, 1, 2)
+                Dk2D_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 1), 0, 1)
+                @test Dk2D == Dk2D_concat
+            end
+        end
+    end
 end
