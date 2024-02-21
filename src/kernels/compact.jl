@@ -133,6 +133,9 @@ k_r(k::CompactPolynomialKernel, r::Number) = k.poly(r)
 function Base.:(==)(k1::CompactPolynomialKernel, k2::CompactPolynomialKernel)
     return k1.poly == k2.poly && k1.lengthscales == k2.lengthscales
 end
+function Base.isapprox(k1::CompactPolynomialKernel, k2::CompactPolynomialKernel)
+    return k1.poly ≈ k2.poly && k1.lengthscales ≈ k2.lengthscales
+end
 
 """
     struct CompactSignedPolynomialKernel{T<:Number, X <: Number} <: AbstractCompactSignedRadialKernel{X}
@@ -160,6 +163,9 @@ k_r(k::CompactSignedPolynomialKernel, r::Number) = k.poly(r)
 
 function Base.:(==)(k1::CompactSignedPolynomialKernel, k2::CompactSignedPolynomialKernel)
     return k1.poly == k2.poly && k1.lengthscales == k2.lengthscales
+end
+function Base.isapprox(k1::CompactSignedPolynomialKernel, k2::CompactSignedPolynomialKernel)
+    return k1.poly ≈ k2.poly && k1.lengthscales ≈ k2.lengthscales
 end
 
 """

@@ -14,6 +14,8 @@ include("test_factorized_grid.jl")
 include("kernels/test_wendland.jl")
 
 include("linearfunctionoperators/arithmetic/test_concatenate.jl")
+include("linearfunctionoperators/differential_operators/test_partial_derivative.jl")
+include("linearfunctionoperators/differential_operators/test_pd_wendland.jl")
 include("linearfunctionoperators/test_evaluation.jl")
 
 @testset "Aqua" begin

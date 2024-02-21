@@ -10,15 +10,15 @@ struct PartialDerivative{N,M} <: AbstractDifferentialOperator
         output_idx::Integer,
         multi_idx::NTuple{M,Integer},
     ) where {N,M}
-        @assert 1 <= output_idx <= N
+        if !(1 <= output_idx <= N)
+            throw(DomainError(output_idx, "output_idx must be between 1 and $N"))
+        end
         order = sum(multi_idx)
         return new(output_idx, multi_idx, order)
     end
 end
 
-function PartialDerivative(
-    multi_idx::NTuple{M,Integer},
-) where {M}
+function PartialDerivative(multi_idx::NTuple{M,Integer}) where {M}
     return PartialDerivative{1,M}(1, multi_idx)
 end
 
@@ -77,7 +77,7 @@ function (op::PartialDerivative{1,1})(
     arg::Integer = 2,
 )
     if arg ∉ [1, 2]
-        return error("arg must be 1 or 2")
+        throw(DomainError(arg, "arg must be 1 or 2"))
     end
     if arg == 1
         return derivative(k, op.order, 0)
