@@ -18,6 +18,8 @@ include("linearfunctionoperators/differential_operators/test_partial_derivative.
 include("linearfunctionoperators/differential_operators/test_pd_wendland.jl")
 include("linearfunctionoperators/test_evaluation.jl")
 
+include("linear_functionals/test_linear_functional.jl")
+
 @testset "Aqua" begin
     Aqua.test_all(GaussPDE; piracies = false, ambiguities = false)
     Aqua.test_piracies(GaussPDE; treat_as_own = [MvNormal, SparseCholFactor])
