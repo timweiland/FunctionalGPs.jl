@@ -12,6 +12,7 @@ include("kernels/wendland_covmat_ops.jl")
 include("pv_crosscovs/pv_crosscov.jl")
 include("pv_crosscovs/evaluation.jl")
 include("pv_crosscovs/stack.jl")
+include("pv_crosscovs/arithmetic/sum.jl")
 
 include("linearfunctionoperators/linear_function_operator.jl")
 include("linearfunctionoperators/arithmetic/concatenate.jl")

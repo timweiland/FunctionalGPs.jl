@@ -1,6 +1,6 @@
 import AbstractGPs: ZeroMean
 
-export AbstractLinearFunctional
+export AbstractLinearFunctional, output_shape
 
 abstract type AbstractLinearFunctional end
 output_shape(op::AbstractLinearFunctional) = op.output_shape
@@ -18,4 +18,8 @@ function (ℒ::AbstractLinearFunctional)(pv::StackedPVCrosscov)
     else
         return mortar(Tuple(tuple(block) for block in blocks)...)
     end
+end
+
+function (ℒ::AbstractLinearFunctional)(pv::AbstractSumPVCrosscov)
+    return sum([ℒ(pv_crosscov) for pv_crosscov in pv.summands])
 end

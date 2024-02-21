@@ -7,7 +7,7 @@ export LinfctlTransformedGP
 
 struct LinfctlTransformedGP{Tf,TΣy}
     f::Tf
-    ℒ::AbstractLinearFunctionOperator
+    ℒ::AbstractLinearFunctional
     ℒμ::AbstractArray
     ℒkℒ′::AbstractArray
     Σy::TΣy
