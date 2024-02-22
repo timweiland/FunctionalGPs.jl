@@ -7,7 +7,6 @@ include("util/unified_cholesky.jl")
 
 include("kernels/compact.jl")
 include("kernels/wendland.jl")
-include("kernels/wendland_covmat_ops.jl")
 
 include("pv_crosscovs/pv_crosscov.jl")
 include("pv_crosscovs/evaluation.jl")
