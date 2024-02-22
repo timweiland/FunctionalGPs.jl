@@ -1,19 +1,43 @@
-export SumLinearFunctionOperator
+import KernelFunctions: KernelSum
 
-abstract type SumLinearFunctionOperator <: AbstractLinearFunctionOperator end
-summands(op::SumLinearFunctionOperator) = op.summands
-function (op::SumLinearFunctionOperator)(args...)
-    return sum([summand(args...) for summand in summands(op)])
+export AbstractSumLinearFunctionOperator
+
+abstract type AbstractSumLinearFunctionOperator{N} <: AbstractLinearFunctionOperator end
+summands(op::AbstractSumLinearFunctionOperator) = op.summands
+function (op::AbstractSumLinearFunctionOperator)(args...; kwargs...)
+    return sum([summand(args...; kwargs...) for summand in summands(op)])
 end
 
-function Base.show(io::IO, op::SumLinearFunctionOperator)
+function Base.show(io::IO, op::AbstractSumLinearFunctionOperator)
     return print(io, join(["($(string(summand)))" for summand in summands(op)], " + "))
 end
 
-_fallback(op::SumLinearFunctionOperator, x, args...; kwargs...) = invoke(op, Tuple{Any}, x, args...; kwargs...)
-(op::SumLinearFunctionOperator)(x::EvaluationPVCrosscov) = _fallback(op, x)
-(op::SumLinearFunctionOperator)(x::StackedPVCrosscov) = _fallback(op, x)
-(op::SumLinearFunctionOperator)(x::ZeroMean{T}, args...) where {T} = _fallback(op, x, args...)
-function (ℒ::SumLinearFunctionOperator)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
-    return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
+_fallback(op::AbstractSumLinearFunctionOperator, x, args...; kwargs...) = invoke(op, Tuple{Any}, x, args...; kwargs...)
+(op::AbstractSumLinearFunctionOperator)(x::EvaluationPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctionOperator)(x::StackedPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctionOperator)(x::ZeroMean{T}, args...; kwargs...) where {T} = ZeroMean{T}()
+(op::AbstractSumLinearFunctionOperator)(x::KernelSum, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+
+struct SumLinearFunctionOperator{N} <: AbstractSumLinearFunctionOperator{N}
+    summands::NTuple{N,AbstractLinearFunctionOperator}
+
+    function SumLinearFunctionOperator(summands::NTuple{N,AbstractLinearFunctionOperator}) where {N}
+        new{N}(summands)
+    end
+end
+
+function Base.:+(op1::AbstractLinearFunctionOperator, op2::AbstractLinearFunctionOperator)
+    return SumLinearFunctionOperator((op1, op2))
+end
+
+function Base.:+(op1::AbstractSumLinearFunctionOperator, op2::AbstractLinearFunctionOperator)
+    return SumLinearFunctionOperator((summands(op1)..., op2))
+end
+
+function Base.:+(op1::AbstractLinearFunctionOperator, op2::AbstractSumLinearFunctionOperator)
+    return SumLinearFunctionOperator((op1, summands(op2)...))
+end
+
+function Base.:+(op1::AbstractSumLinearFunctionOperator, op2::AbstractSumLinearFunctionOperator)
+    return SumLinearFunctionOperator((summands(op1)..., summands(op2)...))
 end

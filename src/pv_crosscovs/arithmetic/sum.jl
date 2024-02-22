@@ -46,3 +46,11 @@ end
 function Base.:+(op1::AbstractSumPVCrosscov, op2::AbstractSumPVCrosscov)
     return SumPVCrosscov((summands(op1)..., summands(op2)...))
 end
+
+function Base.isequal(op1::SumPVCrosscov, op2::SumPVCrosscov)
+    return all(op1.summands .== op2.summands)
+end
+
+function Base.isapprox(op1::SumPVCrosscov, op2::SumPVCrosscov)
+    return all(isapprox.(op1.summands, op2.summands))
+end
