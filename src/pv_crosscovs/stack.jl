@@ -49,3 +49,17 @@ end
 function kernelmatrix(pv::StackedPVCrosscov, X::AbstractVector)
     return hcat([kernelmatrix(pv_crosscov, X) for pv_crosscov in pv.pv_crosscovs]...)
 end
+
+function Base.isequal(pv1::StackedPVCrosscov, pv2::StackedPVCrosscov)
+    if length(pv1.pv_crosscovs) != length(pv2.pv_crosscovs)
+        return false
+    end
+    return all(pv1.pv_crosscovs .== pv2.pv_crosscovs)
+end
+
+function Base.isapprox(pv1::StackedPVCrosscov, pv2::StackedPVCrosscov)
+    if length(pv1.pv_crosscovs) != length(pv2.pv_crosscovs)
+        return false
+    end
+    return all(pv1.pv_crosscovs .≈ pv2.pv_crosscovs)
+end

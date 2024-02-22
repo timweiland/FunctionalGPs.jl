@@ -23,3 +23,11 @@ function kernelmatrix(pv::EvaluationPVCrosscov, X::AbstractVector)
         return kernelmatrix(pv.k, X, pv.X)
     end
 end
+
+function Base.isequal(pv1::EvaluationPVCrosscov, pv2::EvaluationPVCrosscov)
+    return pv1.k == pv2.k && pv1.X == pv2.X && pv1.eval_arg == pv2.eval_arg
+end
+
+function Base.isapprox(pv1::EvaluationPVCrosscov, pv2::EvaluationPVCrosscov)
+    return pv1.k ≈ pv2.k && pv1.X ≈ pv2.X && pv1.eval_arg == pv2.eval_arg
+end

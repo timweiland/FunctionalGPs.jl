@@ -58,12 +58,12 @@ function Base.:∘(
 end
 
 function Base.:∘(op1::AbstractLinFctlLinFuncOpConcat, op2::AbstractLinearFunctionOperator)
-    return LinFctlLinFuncOpConcat(linfctl(op1), (linfuncops(op1)..., op2))
+    return LinFctlLinFuncOpConcat(linfctl(op1), (op2, linfuncops(op1)...))
 end
 
 function Base.:∘(
     op1::AbstractLinFctlLinFuncOpConcat,
     op2::AbstractConcatenatedLinearFunctionOperator,
 )
-    return LinFctlLinFuncOpConcat(linfctl(op1), (linfuncops(op1)..., linfuncops(op2)...))
+    return LinFctlLinFuncOpConcat(linfctl(op1), (linfuncops(op2)..., linfuncops(op1)...))
 end
