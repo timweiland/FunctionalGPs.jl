@@ -19,6 +19,7 @@ _fallback(op::AbstractConcatenatedLinearFunctionOperator, x, args...; kwargs...)
 (op::AbstractConcatenatedLinearFunctionOperator)(x::StackedPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractConcatenatedLinearFunctionOperator)(x::ZeroMean{T}, args...; kwargs...) where {T} = _fallback(op, x, args...; kwargs...)
 (op::AbstractConcatenatedLinearFunctionOperator)(x::KernelSum, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractConcatenatedLinearFunctionOperator)(x::ScaledKernel, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 
 
 function Base.show(io::IO, op::AbstractConcatenatedLinearFunctionOperator)

@@ -1,4 +1,4 @@
-import KernelFunctions: KernelSum
+import KernelFunctions: KernelSum, ScaledKernel
 
 export AbstractSumLinearFunctionOperator
 
@@ -17,6 +17,7 @@ _fallback(op::AbstractSumLinearFunctionOperator, x, args...; kwargs...) = invoke
 (op::AbstractSumLinearFunctionOperator)(x::StackedPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractSumLinearFunctionOperator)(x::ZeroMean{T}, args...; kwargs...) where {T} = ZeroMean{T}()
 (op::AbstractSumLinearFunctionOperator)(x::KernelSum, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctionOperator)(x::ScaledKernel, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 
 struct SumLinearFunctionOperator{N} <: AbstractSumLinearFunctionOperator{N}
     summands::NTuple{N,AbstractLinearFunctionOperator}
