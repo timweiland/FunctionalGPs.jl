@@ -20,6 +20,7 @@ include("linearfunctionoperators/arithmetic/test_scale.jl")
 include("linearfunctionoperators/arithmetic/test_sum.jl")
 include("linearfunctionoperators/differential_operators/test_partial_derivative.jl")
 include("linearfunctionoperators/differential_operators/test_pd_wendland.jl")
+include("linearfunctionoperators/differential_operators/test_linear_diffop.jl")
 include("linearfunctionoperators/test_evaluation.jl")
 
 include("linear_functionals/test_linear_functional.jl")
