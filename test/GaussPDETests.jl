@@ -13,7 +13,10 @@ include("test_factorized_grid.jl")
 
 include("kernels/test_wendland.jl")
 
+include("pv_crosscovs/arithmetic/test_scale.jl")
+
 include("linearfunctionoperators/arithmetic/test_concatenate.jl")
+include("linearfunctionoperators/arithmetic/test_scale.jl")
 include("linearfunctionoperators/arithmetic/test_sum.jl")
 include("linearfunctionoperators/differential_operators/test_partial_derivative.jl")
 include("linearfunctionoperators/differential_operators/test_pd_wendland.jl")

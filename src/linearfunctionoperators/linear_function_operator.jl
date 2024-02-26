@@ -1,5 +1,5 @@
 import AbstractGPs: ZeroMean
-import KernelFunctions: KernelSum
+import KernelFunctions: KernelSum, ScaledKernel
 
 export AbstractLinearFunctionOperator
 
@@ -14,6 +14,10 @@ function (ℒ::AbstractLinearFunctionOperator)(pv::StackedPVCrosscov)
     return StackedPVCrosscov(map(ℒ, pv.pv_crosscovs))
 end
 
-function (ℒ::AbstractLinearFunctionOperator)(k::KernelSum)
-    return mapreduce(ℒ, +, k.kernels)
+function (ℒ::AbstractLinearFunctionOperator)(k::KernelSum, args...; kwargs...)
+    return mapreduce((k) -> ℒ(k, args...; kwargs...), +, k.kernels)
+end
+
+function (ℒ::AbstractLinearFunctionOperator)(k::ScaledKernel, args...; kwargs...)
+    return ScaledKernel(ℒ(k.kernel, args...; kwargs...), k.σ²)
 end
