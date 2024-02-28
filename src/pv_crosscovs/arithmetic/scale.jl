@@ -5,6 +5,8 @@ export AbstractScaledPVCrosscov, ConstantScaledPVCrosscov
 abstract type AbstractScaledPVCrosscov <: ProcessVectorCrossCovariance end
 pv_crosscov(op::AbstractScaledPVCrosscov) = op.pv_crosscov
 scale(op::AbstractScaledPVCrosscov) = error("scale not implemented for $(typeof(op))")
+randvar_arg(op::AbstractScaledPVCrosscov) = randvar_arg(pv_crosscov(op))
+randvar_batch_size(op::AbstractScaledPVCrosscov) = randvar_batch_size(pv_crosscov(op))
 
 function (op::AbstractScaledPVCrosscov)(args...; kwargs...)
     return scale(op) * pv_crosscov(op)(args...; kwargs...)

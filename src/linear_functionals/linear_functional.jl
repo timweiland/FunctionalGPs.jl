@@ -23,3 +23,7 @@ end
 function (ℒ::AbstractLinearFunctional)(pv::AbstractSumPVCrosscov)
     return sum([ℒ(pv_crosscov) for pv_crosscov in pv.summands])
 end
+
+function (ℒ::AbstractLinearFunctional)(pv::ConstantScaledPVCrosscov)
+    return scale(pv) * ℒ(pv.pv_crosscov)
+end

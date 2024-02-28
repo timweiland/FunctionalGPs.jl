@@ -26,6 +26,9 @@ import KernelFunctions: kernelmatrix
     stacked = StackedPVCrosscov([δ(f.kernel), δ2(f.kernel)])
     @test concat(stacked) ≈ δ(𝒟(stacked))
 
+    C = 5 * rand()
+    @test concat(C * δ(f.kernel)) ≈ C * concat(δ(f.kernel))
+
     concat_f = concat(f)
     @test mean(concat_f) ≈ δ(𝒟(f.mean))
     @test cov(concat_f) ≈ δ(𝒟(δ(𝒟(f.kernel))))

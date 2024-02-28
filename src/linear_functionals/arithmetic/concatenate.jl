@@ -16,12 +16,13 @@ end
 function _fallback(op::AbstractLinFctlLinFuncOpConcat, x, args...; kwargs...)
     return invoke(op, Tuple{Any}, x, args...; kwargs...)
 end
-function (op::AbstractLinFctlLinFuncOpConcat)(::ZeroMean{T}, args...) where {T}
+function (op::AbstractLinFctlLinFuncOpConcat)(::ZeroMean{T}, args...; kwargs...) where {T}
     return zeros(T, output_shape(op)...)
 end
-(op::AbstractLinFctlLinFuncOpConcat)(pv::StackedPVCrosscov) = _fallback(op, pv)
-(op::AbstractLinFctlLinFuncOpConcat)(pv::EvaluationPVCrosscov) = _fallback(op, pv)
-(op::AbstractLinFctlLinFuncOpConcat)(x::AbstractSumPVCrosscov) = _fallback(op, x)
+(op::AbstractLinFctlLinFuncOpConcat)(pv::StackedPVCrosscov, args...; kwargs...) = _fallback(op, pv, args...; kwargs...)
+(op::AbstractLinFctlLinFuncOpConcat)(pv::EvaluationPVCrosscov, args...; kwargs...) = _fallback(op, pv, args...; kwargs...)
+(op::AbstractLinFctlLinFuncOpConcat)(x::AbstractSumPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractLinFctlLinFuncOpConcat)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 function (ℒ::AbstractLinFctlLinFuncOpConcat)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
     return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
 end

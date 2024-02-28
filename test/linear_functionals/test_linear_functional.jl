@@ -39,4 +39,7 @@ end
     @test ℒ_k_stacked ≈ hcat(42 * ones(3, 10), 42 * ones(3, 4))
     stacked_k_ℒ = ℒ(stacked_k)
     @test stacked_k_ℒ ≈ vcat(42 * ones(10, 3), 42 * ones(4, 3))
+
+    C = 5 * rand()
+    @test ℒ(C * δ(f.kernel)) ≈ C * ℒ(δ(f.kernel))
 end

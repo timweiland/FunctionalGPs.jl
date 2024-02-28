@@ -27,6 +27,9 @@ import KernelFunctions: kernelmatrix
     sum_stacked = sum_fctl(stacked)
     @test sum_stacked ≈ δ1(stacked) + δ2(stacked)
 
+    C = 5 * rand()
+    @test sum_fctl(C * δ3(f.kernel)) ≈ C * sum_fctl(δ3(f.kernel))
+
     sum_f = sum_fctl(f)
     @test mean(sum_f) ≈ δ1(f.mean) + δ2(f.mean)
     @test cov(sum_f) ≈

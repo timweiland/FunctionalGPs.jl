@@ -11,10 +11,11 @@ function Base.show(io::IO, op::AbstractSumLinearFunctional)
 end
 
 _fallback(op::AbstractSumLinearFunctional, x, args...; kwargs...) = invoke(op, Tuple{Any}, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(x::EvaluationPVCrosscov) = _fallback(op, x)
-(op::AbstractSumLinearFunctional)(x::StackedPVCrosscov) = _fallback(op, x)
-(op::AbstractSumLinearFunctional)(x::ZeroMean{T}, args...) where {T} = _fallback(op, x, args...)
-(op::AbstractSumLinearFunctional)(x::AbstractSumPVCrosscov) = _fallback(op, x)
+(op::AbstractSumLinearFunctional)(x::EvaluationPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(x::StackedPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(x::ZeroMean{T}, args...; kwargs...) where {T} = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(x::AbstractSumPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 function (ℒ::AbstractSumLinearFunctional)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
     return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
 end

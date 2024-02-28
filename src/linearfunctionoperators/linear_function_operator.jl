@@ -14,6 +14,14 @@ function (ℒ::AbstractLinearFunctionOperator)(pv::StackedPVCrosscov)
     return StackedPVCrosscov(map(ℒ, pv.pv_crosscovs))
 end
 
+function (ℒ::AbstractLinearFunctionOperator)(pv::AbstractSumPVCrosscov)
+    return SumPVCrosscov(map(ℒ, pv.summands))
+end
+
+function (ℒ::AbstractLinearFunctionOperator)(pv::ConstantScaledPVCrosscov)
+    return ConstantScaledPVCrosscov(ℒ(pv.pv_crosscov), pv.scalar)
+end
+
 function (ℒ::AbstractLinearFunctionOperator)(k::KernelSum, args...; kwargs...)
     return mapreduce((k) -> ℒ(k, args...; kwargs...), +, k.kernels)
 end
