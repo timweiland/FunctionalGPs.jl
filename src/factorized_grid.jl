@@ -1,9 +1,9 @@
-import KernelFunctions: KernelTensorProduct, kernelmatrix
+import KernelFunctions: KernelTensorProduct, kernelmatrix, kernelmatrix_diag
 
-export FactorizedGrid, kernelmatrix
+export FactorizedGrid, kernelmatrix, kernelmatrix_diag
 
-struct FactorizedGrid
-    ranges::Tuple{Vararg{AbstractVector}}
+struct FactorizedGrid{T} <: AbstractVector{T}
+    ranges::Tuple{Vararg{AbstractVector{T}}}
 end
 
 function Base.convert(::Type{Array{T}}, A::FactorizedGrid) where {T<:Number}
@@ -13,7 +13,7 @@ end
 
 Base.convert(::Type{Array}, A::FactorizedGrid) = convert(Array{Float64}, A)
 
-FactorizedGrid(ranges::AbstractVector...) = FactorizedGrid(ranges)
+FactorizedGrid(ranges::AbstractVector{T}...) where {T} = FactorizedGrid{T}(ranges)
 
 Base.size(A::FactorizedGrid) = Tuple(length(rangeᵢ) for rangeᵢ in A.ranges)
 
@@ -38,3 +38,12 @@ function kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid, y::FactorizedGr
     return reduce(kron, reverse(Tuple(Ks)))
 end
 kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid) = kernelmatrix(k, x, x)
+function kernelmatrix_diag(k::KernelTensorProduct, x::FactorizedGrid)
+    @assert length(k.kernels) == length(x.ranges)
+    diags = (kernelmatrix_diag(k.kernels[i], x.ranges[i]) for i in 1:length(x.ranges))
+    return reduce(kron, diags)
+end
+
+function Base.show(io::IO, A::FactorizedGrid)
+    print(io, "FactorizedGrid($(size(A)))")
+end

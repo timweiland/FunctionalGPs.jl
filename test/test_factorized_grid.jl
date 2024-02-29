@@ -1,6 +1,7 @@
 using ReTest
 using GaussPDE
 using KernelFunctions
+using LinearAlgebra
 
 @testset "Factorized Grid" begin
     k₁ = with_lengthscale(Matern32Kernel(), 1.0)
@@ -14,10 +15,12 @@ using KernelFunctions
         x₁ = rand(0.0:0.1:3.0, N)
         x₂ = rand(0.0:0.1:3.0, M)
         G = FactorizedGrid(x₁, x₂)
+        @test string(G) == "FactorizedGrid(($N, $M))"
 
         K = kernelmatrix(k, flat_arr(G))
 
         @test kernelmatrix(k, G) ≈ K atol = 1e-8
+        @test kernelmatrix_diag(k, G) ≈ diag(K)
     end
 
     @testset "KernelTensorProduct k(X, Y)" for (N, M) in
