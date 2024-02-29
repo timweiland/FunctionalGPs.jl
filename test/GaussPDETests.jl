@@ -11,6 +11,8 @@ include("util/test_unified_cholesky.jl")
 
 include("test_factorized_grid.jl")
 
+include("domains/test_box.jl")
+
 include("kernels/test_wendland.jl")
 
 include("pv_crosscovs/arithmetic/test_scale.jl")
