@@ -3,7 +3,7 @@ import KernelFunctions: KernelTensorProduct, kernelmatrix, kernelmatrix_diag
 export FactorizedGrid, kernelmatrix, kernelmatrix_diag
 
 struct FactorizedGrid{T} <: AbstractVector{T}
-    ranges::Tuple{Vararg{AbstractVector{T}}}
+    ranges::Tuple{T, Vararg{T}}
 end
 
 function Base.convert(::Type{Array{T}}, A::FactorizedGrid) where {T<:Number}
@@ -13,7 +13,7 @@ end
 
 Base.convert(::Type{Array}, A::FactorizedGrid) = convert(Array{Float64}, A)
 
-FactorizedGrid(ranges::AbstractVector{T}...) where {T} = FactorizedGrid{T}(ranges)
+FactorizedGrid(ranges::AbstractVector...) = FactorizedGrid(ranges)
 
 Base.size(A::FactorizedGrid) = Tuple(length(rangeᵢ) for rangeᵢ in A.ranges)
 

@@ -48,4 +48,21 @@ using GaussPDE
         @test length(grid) == 25
         @test grid[3, 2] == [0.5, 0.25]
     end
+
+    @testset "ndims" begin
+        box1 = Box((0, 1), (0, 1))
+        @test ndims(box1) == 2
+
+        box2 = Box((-1, 1), (-1, 1), (-1, 1))
+        @test ndims(box2) == 3
+    end
+
+    @testset "getindex" begin
+        box = Box((0, 1), (0, 1))
+
+        @test box[1] == (0, 1)
+        @test box[2] == (0, 1)
+        @test box[1, 1] == 0
+        @test box[1, 2] == 1
+    end
 end
