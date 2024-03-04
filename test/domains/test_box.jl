@@ -1,22 +1,22 @@
 using GaussPDE
 
-@testset "Box" begin
-    @testset "Box constructor" begin
+@testset "BoxDomain" begin
+    @testset "BoxDomain constructor" begin
         # Test invalid bounds
-        @test_throws ArgumentError Box((1, 0))
-        @test_throws ArgumentError Box((0, 1), (1, 0))
+        @test_throws ArgumentError BoxDomain((1, 0))
+        @test_throws ArgumentError BoxDomain((0, 1), (1, 0))
     end
 
     @testset "volume" begin
-        box1 = Box((0, 1), (0, 1))
+        box1 = BoxDomain((0, 1), (0, 1))
         @test volume(box1) == 1.0
 
-        box2 = Box((-1, 1), (-1, 1), (-1, 1))
+        box2 = BoxDomain((-1, 1), (-1, 1), (-1, 1))
         @test volume(box2) == 8.0
     end
 
     @testset "in" begin
-        box = Box((0, 1), (0, 1))
+        box = BoxDomain((0, 1), (0, 1))
 
         @test in([0.5, 0.5], box) == true
         @test in([1.5, 0.5], box) == false
@@ -24,7 +24,7 @@ using GaussPDE
     end
 
     @testset "uniform_grid_n" begin
-        box = Box((0, 1), (0, 1))
+        box = BoxDomain((0, 1), (0, 1))
 
         grid = uniform_grid_n(box, 2, 2)
         @test grid isa FactorizedGrid
@@ -38,7 +38,7 @@ using GaussPDE
     end
 
     @testset "uniform_grid_step" begin
-        box = Box((0, 1), (0, 1))
+        box = BoxDomain((0, 1), (0, 1))
 
         grid = uniform_grid_step(box, 0.5, 0.5)
         @test length(grid) == 9
@@ -50,15 +50,15 @@ using GaussPDE
     end
 
     @testset "ndims" begin
-        box1 = Box((0, 1), (0, 1))
+        box1 = BoxDomain((0, 1), (0, 1))
         @test ndims(box1) == 2
 
-        box2 = Box((-1, 1), (-1, 1), (-1, 1))
+        box2 = BoxDomain((-1, 1), (-1, 1), (-1, 1))
         @test ndims(box2) == 3
     end
 
     @testset "getindex" begin
-        box = Box((0, 1), (0, 1))
+        box = BoxDomain((0, 1), (0, 1))
 
         @test box[1] == (0, 1)
         @test box[2] == (0, 1)

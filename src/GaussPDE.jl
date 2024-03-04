@@ -35,4 +35,7 @@ include("linear_functionals/arithmetic/sum.jl")
 include("randprocs/linfctl_transformed_gp.jl")
 include("randprocs/linear_conditional_gp.jl")
 
+include("problems/ibvp.jl")
+include("problems/heat.jl")
+
 end

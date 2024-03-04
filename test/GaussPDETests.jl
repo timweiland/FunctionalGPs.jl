@@ -30,6 +30,7 @@ include("linear_functionals/arithmetic/test_sum.jl")
 include("linear_functionals/arithmetic/test_concatenate.jl")
 
 include("test_sin_regression.jl")
+include("problems/test_heat.jl")
 
 @testset "Aqua" begin
     Aqua.test_all(GaussPDE; piracies = false, ambiguities = false)
