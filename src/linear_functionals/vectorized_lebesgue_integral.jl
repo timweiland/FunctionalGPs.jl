@@ -2,10 +2,17 @@ export VectorizedLebesgueIntegral
 
 struct VectorizedLebesgueIntegral{T <: Domain} <: AbstractLinearFunctional
     domains::AbstractVector{T}
-end
 
-function VectorizedLebesgueIntegral(domains::T...) where T <: Domain
-    return VectorizedLebesgueIntegral([domains...])
+    function VectorizedLebesgueIntegral(domains::AbstractVector{T}) where T
+        if length(domains) == 0
+            throw(ArgumentError("At least one domain must be provided"))
+        end
+        return new{T}(domains)
+    end
+
+    function VectorizedLebesgueIntegral(domains...)
+        return VectorizedLebesgueIntegral(domains)
+    end
 end
 
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(k::CompactPolynomialKernel; arg=2) where {T}
