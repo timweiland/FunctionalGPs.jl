@@ -1,4 +1,4 @@
-export Interval, volume, uniform_grid_n, uniform_grid_step
+export Interval, volume, uniform_grid_n, uniform_grid_step, intervals_from_endpoints
 
 struct Interval{T<:Real} <: Domain
     lower::T
@@ -23,10 +23,16 @@ end
 volume(interval::Interval) = interval.upper - interval.lower
 Base.in(x::Number, interval::Interval) = interval.lower <= x <= interval.upper
 
+Base.isequal(a::Interval, b::Interval) = a.lower == b.lower && a.upper == b.upper
+
 function uniform_grid_n(interval::Interval, N::Int)
     return range(interval.lower; stop = interval.upper, length = N)
 end
 
 function uniform_grid_step(interval::Interval, step::Real)
     return range(interval.lower; stop = interval.upper, step = step)
+end
+
+function intervals_from_endpoints(endpoints::AbstractVector)
+    return [Interval(endpoints[i], endpoints[i+1]) for i in 1:length(endpoints)-1]
 end

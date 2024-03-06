@@ -25,4 +25,7 @@ using GaussPDE
 
     # Test uniform_grid_step function
     @test uniform_grid_step(Interval(3, 5), 0.5) == [3.0, 3.5, 4.0, 4.5, 5.0]
+
+    # Test intervals_from_endpoints function
+    @test intervals_from_endpoints([3, 5, 7]) == [Interval(3, 5), Interval(5, 7)]
 end
