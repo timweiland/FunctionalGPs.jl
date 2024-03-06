@@ -9,6 +9,7 @@ include("factorized_grid.jl")
 
 include("domains/domain.jl")
 include("domains/box.jl")
+include("domains/interval.jl")
 
 include("kernels/compact.jl")
 include("kernels/wendland.jl")
