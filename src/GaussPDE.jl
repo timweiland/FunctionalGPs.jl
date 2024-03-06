@@ -20,6 +20,8 @@ include("pv_crosscovs/evaluation.jl")
 include("pv_crosscovs/stack.jl")
 include("pv_crosscovs/arithmetic/scale.jl")
 include("pv_crosscovs/arithmetic/sum.jl")
+include("pv_crosscovs/integrals/radial.jl")
+include("pv_crosscovs/integrals/compact_polynomial.jl")
 
 include("linearfunctionoperators/linear_function_operator.jl")
 include("linearfunctionoperators/arithmetic/concatenate.jl")

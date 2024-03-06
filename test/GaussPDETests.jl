@@ -17,6 +17,7 @@ include("domains/test_interval.jl")
 include("kernels/test_wendland.jl")
 
 include("pv_crosscovs/arithmetic/test_scale.jl")
+include("pv_crosscovs/integrals/test_wendland.jl")
 
 include("linearfunctionoperators/arithmetic/test_concatenate.jl")
 include("linearfunctionoperators/arithmetic/test_scale.jl")
