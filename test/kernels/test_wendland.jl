@@ -110,4 +110,21 @@ const FD_ORDER = 16
             end
         end
     end
+
+    @testset "Radial antiderivatives" begin
+        ℓ = 0.6
+        w = WendlandKernel(1, 3, ℓ)
+        anti = radial_antiderivative(w, 1)
+        rs = rand(10)
+        for r in rs
+            @test central_fdm(12, 1)(anti, r / ℓ) ≈ w(0.0, r) rtol = 1e-3 atol = 1e-8
+        end
+
+        anti2 = radial_antiderivative(w, 2)
+        for r in rs
+            @test central_fdm(12, 1)(anti2, r / ℓ) ≈ anti(r / ℓ) rtol = 1e-3 atol = 1e-8
+        end
+
+        @test_throws ArgumentError radial_antiderivative(w, -1)
+    end
 end

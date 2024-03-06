@@ -196,3 +196,20 @@ function derivative(k::CompactSignedPolynomialKernel, n::Int, m::Int)
     return isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
            CompactSignedPolynomialKernel(poly, k.lengthscales)
 end
+
+function radial_antiderivative(k::CompactPolynomialKernel, n::Int)
+    if n <= 0
+        throw(ArgumentError("n must be a positive integer"))
+    elseif n == 1
+        poly_int = Polynomials.integrate(k.poly)
+        return (r) -> poly_int(min(r, 1.0))
+    elseif n == 2
+        poly_int = Polynomials.integrate(k.poly)
+        poly_int2 = Polynomials.integrate(poly_int)
+        poly_int2_norm = poly_int2 - poly_int2.coeffs[1]
+        return (r) -> (
+            r > 1.0 ? poly_int2_norm(1.0) + (r - 1.0) * poly_int(1.0) : poly_int2_norm(r)
+        )
+    end
+    error("radial_antiderivative not implemented for n=$(n)")
+end

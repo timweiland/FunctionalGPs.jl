@@ -12,6 +12,7 @@ include("domains/box.jl")
 include("domains/interval.jl")
 
 include("kernels/compact.jl")
+include("kernels/radial.jl")
 include("kernels/wendland.jl")
 
 include("pv_crosscovs/pv_crosscov.jl")
