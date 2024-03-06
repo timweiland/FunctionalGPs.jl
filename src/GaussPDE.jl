@@ -35,6 +35,7 @@ include("linear_functionals/linear_functional.jl")
 include("linear_functionals/evaluation.jl")
 include("linear_functionals/arithmetic/concatenate.jl")
 include("linear_functionals/arithmetic/sum.jl")
+include("linear_functionals/vectorized_lebesgue_integral.jl")
 
 include("randprocs/linfctl_transformed_gp.jl")
 include("randprocs/linear_conditional_gp.jl")

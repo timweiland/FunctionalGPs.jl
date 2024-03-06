@@ -30,6 +30,7 @@ include("linearfunctionoperators/test_evaluation.jl")
 include("linear_functionals/test_linear_functional.jl")
 include("linear_functionals/arithmetic/test_sum.jl")
 include("linear_functionals/arithmetic/test_concatenate.jl")
+include("linear_functionals/test_vectorized_lebesgue_integral.jl")
 
 include("test_sin_regression.jl")
 include("problems/test_heat.jl")

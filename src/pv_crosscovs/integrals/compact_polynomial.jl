@@ -47,9 +47,9 @@ end
 
 function integrate(
     k::CompactPolynomialKernel,
-    domains1::AbstractVector{Interval{T}},
-    domains2::AbstractVector{Interval{T}},
-) where {T}
+    domains1,
+    domains2,
+)
     anti = radial_antiderivative(k, 2)
     ℓ = k.lengthscales
 
