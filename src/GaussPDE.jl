@@ -8,8 +8,9 @@ include("util/unified_cholesky.jl")
 include("factorized_grid.jl")
 
 include("domains/domain.jl")
-include("domains/box.jl")
 include("domains/interval.jl")
+include("domains/box.jl")
+include("domains/factorized_box.jl")
 
 include("kernels/compact.jl")
 include("kernels/radial.jl")

@@ -13,6 +13,7 @@ include("test_factorized_grid.jl")
 
 include("domains/test_box.jl")
 include("domains/test_interval.jl")
+include("domains/test_factorized_box.jl")
 
 include("kernels/test_wendland.jl")
 
