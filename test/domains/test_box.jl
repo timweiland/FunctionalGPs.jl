@@ -13,6 +13,9 @@ using GaussPDE
 
         box2 = BoxDomain((-1, 1), (-1, 1), (-1, 1))
         @test volume(box2) == 8.0
+
+        box3 = BoxDomain(Interval(-1, 1), Interval(-1, 1), Interval(-1, 1))
+        @test volume(box3) == 8.0
     end
 
     @testset "in" begin

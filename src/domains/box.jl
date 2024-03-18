@@ -1,9 +1,9 @@
 export BoxDomain, volume, uniform_grid_n, uniform_grid_step
 
 struct BoxDomain{T<:Real} <: Domain
-    bounds::Tuple{Tuple{T, T}, Vararg{Tuple{T, T}}}
+    bounds::Tuple{Tuple{T,T},Vararg{Tuple{T,T}}}
 
-    function BoxDomain(bounds::Tuple{Tuple{T, T}, Vararg{Tuple{T, T}}}) where {T<:Real}
+    function BoxDomain(bounds::Tuple{Tuple{T,T},Vararg{Tuple{T,T}}}) where {T<:Real}
         if !all(lower <= upper for (lower, upper) in bounds)
             throw(ArgumentError("Lower bounds may not be larger than upper bounds"))
         end
@@ -11,8 +11,10 @@ struct BoxDomain{T<:Real} <: Domain
     end
 end
 
-function BoxDomain(bounds::Tuple{<:Real, <:Real}...)
-    return BoxDomain(bounds)
+BoxDomain(bounds::Tuple{<:Real,<:Real}...) = BoxDomain(bounds)
+
+function BoxDomain(intervals::Interval{<:Real}...)
+    return BoxDomain(map(interval -> (interval.lower, interval.upper), intervals))
 end
 
 Base.ndims(box::BoxDomain) = length(box.bounds)
@@ -25,11 +27,17 @@ function Base.in(x::AbstractVector, box::BoxDomain)
 end
 
 function uniform_grid_n(box::BoxDomain, Ns::Int...)
-    ranges = [range(lower, stop=upper, length=N) for (N, (lower, upper)) in zip(Ns, box.bounds)]
+    ranges = [
+        range(lower; stop = upper, length = N) for
+        (N, (lower, upper)) in zip(Ns, box.bounds)
+    ]
     return FactorizedGrid(ranges...)
 end
 
 function uniform_grid_step(box::BoxDomain, steps::Real...)
-    ranges = [range(lower, stop=upper, step=step) for (step, (lower, upper)) in zip(steps, box.bounds)]
+    ranges = [
+        range(lower; stop = upper, step = step) for
+        (step, (lower, upper)) in zip(steps, box.bounds)
+    ]
     return FactorizedGrid(ranges...)
 end
