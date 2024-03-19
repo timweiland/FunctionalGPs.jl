@@ -27,3 +27,11 @@ end
 function (ℒ::AbstractLinearFunctional)(pv::ConstantScaledPVCrosscov)
     return scale(pv) * ℒ(pv.pv_crosscov)
 end
+
+function (ℒ::AbstractLinearFunctional)(k::KernelSum, args...; kwargs...)
+    return mapreduce((k) -> ℒ(k, args...; kwargs...), +, k.kernels)
+end
+
+function (ℒ::AbstractLinearFunctional)(k::ScaledKernel, args...; kwargs...)
+    return k.σ² * ℒ(k.kernel, args...; kwargs...)
+end
