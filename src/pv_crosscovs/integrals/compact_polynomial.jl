@@ -4,7 +4,7 @@ using NearestNeighbors: BallTree, inrange
 struct CompactPolynomialCovFunc1D_Identity_LebesgueIntegral <:
        RadialCovarianceFunction1D_Identity_LebesgueIntegral
     covfunc::CompactPolynomialKernel
-    domains::AbstractVector{Interval}
+    domains::AbstractVector{Interval{Float64}}
     randvar_arg::Int
 end
 
