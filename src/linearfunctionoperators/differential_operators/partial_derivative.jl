@@ -85,3 +85,12 @@ function (op::PartialDerivative{1,1})(
         return derivative(k, 0, op.order)
     end
 end
+
+function (op::PartialDerivative{1, M})(pv::TensorProductCrosscov{M}) where M
+    factors = Vector{ProcessVectorCrossCovariance}(undef, M)
+    for (i, order) in enumerate(op.multi_idx)
+        pd = PartialDerivative((order,))
+        factors[i] = pd(pv.factors[i])
+    end
+    return TensorProductCrosscov(factors...)
+end

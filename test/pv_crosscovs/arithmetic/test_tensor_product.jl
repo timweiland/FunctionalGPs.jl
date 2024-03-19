@@ -27,4 +27,15 @@ using LinearAlgebra
         x = FactorizedGrid([0.1, 0.3], [0.15, 0.25])
         @test kernelmatrix(pv_prod, x) ≈ kron(kernelmatrix(δ₂k, x[2]), kernelmatrix(δ₁k, x[1]))
     end
+
+    k1 = WendlandKernel(1, 3, 0.8)
+    k2 = WendlandKernel(1, 2, 0.4)
+    pv_prod = δ₁(k1) ⊗ δ₂(k2)
+    @testset "Partial Derivative" begin
+        pd = PartialDerivative((1, 2))
+        pd_pv_prod = pd(pv_prod)
+        @test pd_pv_prod isa TensorProductCrosscov{2}
+        @test pd_pv_prod.factors[1].k isa DerivativeKernel1D{1, 0}
+        @test pd_pv_prod.factors[2].k isa DerivativeKernel1D{2, 0}
+    end
 end
