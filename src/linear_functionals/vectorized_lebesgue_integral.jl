@@ -1,4 +1,6 @@
-export VectorizedLebesgueIntegral
+import KernelFunctions: KernelTensorProduct
+
+export VectorizedLebesgueIntegral, boxes_to_intervals
 
 struct VectorizedLebesgueIntegral{T<:Domain} <: AbstractLinearFunctional
     domains::AbstractArray{T}
@@ -11,7 +13,7 @@ struct VectorizedLebesgueIntegral{T<:Domain} <: AbstractLinearFunctional
     end
 
     VectorizedLebesgueIntegral(domains...) = VectorizedLebesgueIntegral(domains)
-    end
+end
 
 output_shape(ℒ::VectorizedLebesgueIntegral) = size(ℒ.domains)
 
@@ -79,9 +81,51 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     end
 end
 
-function (op::PartialDerivative{1, 1})(pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral)
+box_integrals(_, _) = error("Not implemented")
+function box_integrals(k::KernelTensorProduct, domains::FactorizedBoxDomains; arg = 2)
+    if length(k.kernels) != ndims(domains)
+        throw(
+            ArgumentError(
+                "Number of kernels $(length(k.kernels)) must match number of domains $(length(domains))",
+            ),
+        )
+    end
+    ℒs = map(VectorizedLebesgueIntegral, get_intervals(domains))
+    return mapreduce(
+        args -> ((cur_k, cur_ℒ) = args; cur_ℒ(cur_k; arg = arg)),
+        ⊗,
+        zip(k.kernels, ℒs),
+    )
+end
+
+function box_integrals(pv::TensorProductCrosscov, domains::FactorizedBoxDomains)
+    ℒs = map(VectorizedLebesgueIntegral, get_intervals(domains))
+    return mapreduce(
+        args -> ((cur_pv, cur_ℒ) = args;
+        cur_ℒ(cur_pv)),
+        kron,
+        zip(pv.factors, ℒs) |> collect |> reverse,
+    )
+end
+
+function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
+    k::KernelTensorProduct;
+    arg = 2,
+) where {T}
+    return box_integrals(k, ℒ.domains; arg = arg)
+end
+
+function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
+    pv::TensorProductCrosscov,
+) where {T}
+    return box_integrals(pv, ℒ.domains)
+end
+
+function (op::PartialDerivative{1,1})(
+    pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
+)
     k = pv.covfunc
-    dk = op(k, arg=randproc_arg(pv))
+    dk = op(k; arg = randproc_arg(pv))
     ℒ = VectorizedLebesgueIntegral(pv.domains)
-    return ℒ(dk, arg=randvar_arg(pv))
+    return ℒ(dk; arg = randvar_arg(pv))
 end
