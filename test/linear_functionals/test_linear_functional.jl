@@ -14,6 +14,8 @@ end
 randvar_batch_size(pv::SillyPVCrosscov) = pv.randvar_shape
 
 (ℒ::SillyFunctional)(::Kernel; arg=2) = SillyPVCrosscov(arg, ℒ.output_shape)
+(ℒ::SillyFunctional)(::KernelSum; arg=2) = SillyPVCrosscov(arg, ℒ.output_shape)
+(ℒ::SillyFunctional)(::ScaledKernel; arg=2) = SillyPVCrosscov(arg, ℒ.output_shape)
 function kernelmatrix(pv::SillyPVCrosscov, X::AbstractVector)
     if pv.randvar_arg == 1
         return 42 * ones(randvar_length(pv), length(X))

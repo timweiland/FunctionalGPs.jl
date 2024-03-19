@@ -31,7 +31,7 @@ function Base.getindex(domains::FactorizedBoxDomains, inds::CartesianIndex)
     return BoxDomain(intervals...)
 end
 
-Base.getindex(domains::FactorizedBoxDomains, inds...) = domains[CartesianIndex(inds...)]
+Base.getindex(domains::FactorizedBoxDomains, inds::Int...) = domains[CartesianIndex(inds...)]
 
 function Base.getindex(domains::FactorizedBoxDomains, ind::Int)
     return domains[CartesianIndices(domains)[ind]]

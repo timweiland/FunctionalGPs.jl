@@ -11,6 +11,7 @@ struct BoxDomain{T<:Real} <: Domain
     end
 end
 
+BoxDomain() = error("Zero-dimensional box domains are unsupported")
 BoxDomain(bounds::Tuple{<:Real,<:Real}...) = BoxDomain(bounds)
 
 function BoxDomain(intervals::Interval{<:Real}...)

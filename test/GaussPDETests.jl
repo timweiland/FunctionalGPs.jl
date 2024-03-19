@@ -6,6 +6,8 @@ using Aqua
 import SparseArrays.CHOLMOD.Factor as SparseCholFactor
 using Distributions: MvNormal
 
+include("test_utils/quad.jl")
+
 include("util/test_array_ops.jl")
 include("util/test_unified_cholesky.jl")
 

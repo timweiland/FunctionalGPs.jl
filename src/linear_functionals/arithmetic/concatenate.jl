@@ -23,6 +23,8 @@ end
 (op::AbstractLinFctlLinFuncOpConcat)(pv::EvaluationPVCrosscov, args...; kwargs...) = _fallback(op, pv, args...; kwargs...)
 (op::AbstractLinFctlLinFuncOpConcat)(x::AbstractSumPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractLinFctlLinFuncOpConcat)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractLinFctlLinFuncOpConcat)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
+(op::AbstractLinFctlLinFuncOpConcat)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
 function (ℒ::AbstractLinFctlLinFuncOpConcat)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
     return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
 end

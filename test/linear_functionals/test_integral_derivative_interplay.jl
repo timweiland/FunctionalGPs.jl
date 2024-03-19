@@ -1,10 +1,6 @@
 using GaussPDE
 using QuadGK
 
-covfunc_integral_one_sided_quad(k, x, a, b) = quadgk(y -> k(x, y), a, b)[1]
-function covfunc_integral_two_sided_quad(k, a, b, c, d)
-    return quadgk(x -> covfunc_integral_one_sided_quad(k, x, c, d), a, b)[1]
-end
 
 function random_idcs(K, n)
     all_idcs = collect(Iterators.product(eachindex(axes(K, 1)), eachindex(axes(K, 2))))

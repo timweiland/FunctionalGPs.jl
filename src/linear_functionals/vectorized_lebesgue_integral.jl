@@ -1,6 +1,6 @@
 import KernelFunctions: KernelTensorProduct
 
-export VectorizedLebesgueIntegral, boxes_to_intervals
+export VectorizedLebesgueIntegral
 
 struct VectorizedLebesgueIntegral{T<:Domain} <: AbstractLinearFunctional
     domains::AbstractArray{T}
@@ -56,29 +56,20 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     k::DerivativeKernel1D{N,M};
     arg = 2,
 ) where {T,N,M}
+    if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
+        error("Not implemented")
+    end
     return cancel_integral(k, ℒ; arg = arg)
 end
 
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-    k::DerivativeKernel1D{N,0,<:AbstractCompactRadialKernel};
+    k::DerivativeKernel1D{N,M,<:AbstractCompactRadialKernel};
     arg = 2,
-) where {T,N}
-    if arg == 1
-        return cancel_integral(k, ℒ; arg = arg)
-    else
+) where {T,N,M}
+    if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
         return -cancel_integral(k, ℒ; arg = arg, same_arg = false)
     end
-end
-
-function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-    k::DerivativeKernel1D{0,M,<:AbstractCompactRadialKernel};
-    arg = 2,
-) where {T,M}
-    if arg == 2
-        return cancel_integral(k, ℒ; arg = arg)
-    else
-        return -cancel_integral(k, ℒ; arg = arg, same_arg = false)
-    end
+    return cancel_integral(k, ℒ; arg = arg)
 end
 
 box_integrals(_, _) = error("Not implemented")

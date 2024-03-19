@@ -16,9 +16,12 @@ _fallback(op::AbstractSumLinearFunctional, x, args...; kwargs...) = invoke(op, T
 (op::AbstractSumLinearFunctional)(x::ZeroMean{T}, args...; kwargs...) where {T} = _fallback(op, x, args...; kwargs...)
 (op::AbstractSumLinearFunctional)(x::AbstractSumPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractSumLinearFunctional)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
 function (ℒ::AbstractSumLinearFunctional)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
     return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
 end
+
 
 struct SumLinearFunctional{N} <: AbstractSumLinearFunctional{N}
     summands::NTuple{N,AbstractLinearFunctional}
