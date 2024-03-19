@@ -31,6 +31,13 @@ struct SumPVCrosscov{N} <: AbstractSumPVCrosscov
     end
 end
 
+randvar_batch_size(op::SumPVCrosscov) = randvar_batch_size(summands(op)[1])
+randvar_arg(op::SumPVCrosscov) = randvar_arg(summands(op)[1])
+
+function Base.:(-)(pv::SumPVCrosscov)
+    return SumPVCrosscov(map(-, pv.summands))
+end
+
 function Base.:+(op1::ProcessVectorCrossCovariance, op2::ProcessVectorCrossCovariance)
     return SumPVCrosscov((op1, op2))
 end

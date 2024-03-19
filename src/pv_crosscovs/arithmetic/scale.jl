@@ -27,6 +27,7 @@ end
 
 scale(op::ConstantScaledPVCrosscov) = op.scalar
 
+Base.:(*)(x::AbstractVector, pv_crosscov::ProcessVectorCrossCovariance) = (length(x) == 1) ? x[1] * pv_crosscov : error("Cannot scale by a vector")
 function Base.:(*)(x::Number, pv_crosscov::ProcessVectorCrossCovariance)
     if x == 1
         return pv_crosscov
@@ -38,6 +39,12 @@ function Base.:(*)(x::Number, op::ConstantScaledPVCrosscov)
         return op
     end
     return ConstantScaledPVCrosscov(op.pv_crosscov, x * op.scalar)
+end
+function Base.:(-)(pv::ProcessVectorCrossCovariance)
+    return -1 * pv
+end
+function Base.:(-)(op::ConstantScaledPVCrosscov)
+    return ConstantScaledPVCrosscov(op.pv_crosscov, -op.scalar)
 end
 
 function Base.isequal(op1::ConstantScaledPVCrosscov, op2::ConstantScaledPVCrosscov)
