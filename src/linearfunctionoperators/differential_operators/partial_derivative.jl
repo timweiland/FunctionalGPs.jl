@@ -73,7 +73,7 @@ function (op::PartialDerivative{1,M})(k::KernelTensorProduct; kwargs...) where {
 end
 
 function (op::PartialDerivative{1,1})(
-    k::Union{CompactPolynomialKernel,CompactSignedPolynomialKernel};
+    k::Union{CompactPolynomialKernel,CompactSignedPolynomialKernel, DerivativeKernel1D};
     arg::Integer = 2,
 )
     if arg ∉ [1, 2]

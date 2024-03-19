@@ -62,6 +62,9 @@ const FD_ORDER = 16
             w = WendlandKernel(d, k, ℓ)
             @testset "n = $n, m=$m" for (n, m) in Iterators.product(0:k, 0:k)
                 𝒟k𝒟′ = GaussPDE.derivative(w, n, m)
+                if (n != 0) || (m != 0)
+                    @test 𝒟k𝒟′ isa DerivativeKernel1D{n, m}
+                end
                 𝒟k𝒟′_approx = 𝒟k𝒟′_fd(w, n, m)
                 lower = rand(0:0.3)
                 upper = rand(0.3:0.7)

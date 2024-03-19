@@ -184,17 +184,25 @@ CompactPolynomialKernel object.
 
 """
 function derivative(k::CompactPolynomialKernel, n::Int, m::Int)
+    if n == 0 && m == 0
+        return k
+    end
     total = n + m
     poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
-    return iseven(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
+    inner_kernel = iseven(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
            CompactSignedPolynomialKernel(poly, k.lengthscales)
+    return DerivativeKernel1D{n, m}(k, inner_kernel)
 end
 
 function derivative(k::CompactSignedPolynomialKernel, n::Int, m::Int)
+    if n == 0 && m == 0
+        return k
+    end
     total = n + m
     poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
-    return isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
+    inner_kernel = isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
            CompactSignedPolynomialKernel(poly, k.lengthscales)
+    return DerivativeKernel1D{n, m}(k, inner_kernel)
 end
 
 function radial_antiderivative(k::CompactPolynomialKernel, n::Int)
