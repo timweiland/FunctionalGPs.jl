@@ -6,12 +6,12 @@ abstract type AbstractLinFctlLinFuncOpConcat{N} <: AbstractLinearFunctional end
 linfctl(op::AbstractLinFctlLinFuncOpConcat) = op.linfctl
 linfuncops(op::AbstractLinFctlLinFuncOpConcat) = op.linfuncops
 output_shape(op::AbstractLinFctlLinFuncOpConcat) = output_shape(linfctl(op))
-function (op::AbstractLinFctlLinFuncOpConcat)(x, args...)
+function (op::AbstractLinFctlLinFuncOpConcat)(x, args...; kwargs...)
     res = x
     for linfuncop in linfuncops(op)
-        res = linfuncop(res, args...)
+        res = linfuncop(res, args...; kwargs...)
     end
-    return linfctl(op)(res, args...)
+    return linfctl(op)(res, args...; kwargs...)
 end
 function _fallback(op::AbstractLinFctlLinFuncOpConcat, x, args...; kwargs...)
     return invoke(op, Tuple{Any}, x, args...; kwargs...)
