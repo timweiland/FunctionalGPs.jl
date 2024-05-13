@@ -46,6 +46,10 @@ function ⊗(op1::ProcessVectorCrossCovariance, op2::ProcessVectorCrossCovarianc
     return TensorProductCrosscov((op1, op2))
 end
 
+function ⊗(op1::AbstractTensorProductCrosscov, op2::ProcessVectorCrossCovariance)
+    return TensorProductCrosscov((factors(op1)..., op2))
+end
+
 function Base.isequal(op1::TensorProductCrosscov, op2::TensorProductCrosscov)
     return op1.factors == op2.factors
 end

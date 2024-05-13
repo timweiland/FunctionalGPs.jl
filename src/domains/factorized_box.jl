@@ -47,3 +47,10 @@ function ⊗(
 ) where {T}
     return FactorizedBoxDomains([intervals1, intervals2])
 end
+
+function ⊗(
+    box_domains::FactorizedBoxDomains,
+    intervals::AbstractVector{Interval{T}}
+) where {T}
+    return FactorizedBoxDomains([get_intervals(box_domains)..., intervals])
+end

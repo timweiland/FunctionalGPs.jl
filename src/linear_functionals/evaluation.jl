@@ -20,8 +20,5 @@ function (op::EvaluationFunctional)(pv::EvaluationPVCrosscov)
     return kernelmatrix(pv.k, X₁, X₂)
 end
 
-function _fallback(op::EvaluationFunctional, x, args...; kwargs...)
-    return invoke(op, Tuple{Any}, x, args...; kwargs...)
-end
-(op::EvaluationFunctional)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
-(op::EvaluationFunctional)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
+(op::EvaluationFunctional)(k::KernelSum, args...; kwargs...) = mapreduce((k) -> op(k, args...; kwargs...), +, k.kernels)
+(op::EvaluationFunctional)(k::ScaledKernel, args...; kwargs...) = k.σ² * op(k.kernel, args...; kwargs...)
