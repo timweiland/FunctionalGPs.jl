@@ -1,4 +1,4 @@
-include("../../src/kernels/SphericalMatern.jl")
+include("../../src/kernels/matern.jl")
 
 using .MaternKernelModule
 
