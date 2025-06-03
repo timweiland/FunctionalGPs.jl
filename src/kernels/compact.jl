@@ -37,10 +37,13 @@ function (k::AbstractCompactKernel)(x, y)
     return r <= 1 ? k_support(k, x, y) : 0.0
 end
 
-SearchTree(x::AbstractVector, metric::Distances.UnionMetric) = BallTree(x, metric)
-SearchTree(x::RowVecs, metric::Distances.UnionMetric) = BallTree(x.X', metric)
-SearchTree(x::ColVecs, metric::Distances.UnionMetric) = BallTree(x.X, metric)
-function SearchTree(x::AbstractVector{T}, metric::Distances.UnionMetric) where {T<:Number}
+SearchTree(x::AbstractVector, metric::Distances.UnionMetrics) = BallTree(x, metric)
+SearchTree(x::RowVecs, metric::Distances.UnionMetrics) = BallTree(x.X', metric)
+SearchTree(x::ColVecs, metric::Distances.UnionMetrics) = BallTree(x.X, metric)
+function SearchTree(
+    x::AbstractVector{T},
+    metric::Distances.UnionMetrics,
+) where {T<:Number}
     return BallTree(convert(Matrix{Float64}, reshape(x, 1, :)), metric)
 end
 function inrange_point(tree::NNTree, point::T, radius::Number) where {T<:Number}
@@ -111,7 +114,7 @@ end
 """
     struct CompactPolynomialKernel{T<:Number, X <: Number} <: AbstractCompactRadialKernel{X}
 
-CompactPolynomialKernel represents a kernel function defined by a polynomial within its 
+CompactPolynomialKernel represents a kernel function defined by a polynomial within its
     compact support.
 
 # Fields
@@ -140,7 +143,7 @@ end
 """
     struct CompactSignedPolynomialKernel{T<:Number, X <: Number} <: AbstractCompactSignedRadialKernel{X}
 
-CompactSignedPolynomialKernel represents a kernel function defined by a polynomial 
+CompactSignedPolynomialKernel represents a kernel function defined by a polynomial
     multiplied by the sign of x - y within its compact support.
 For more information, see the documentation for `CompactPolynomialKernel`.
 
@@ -164,7 +167,10 @@ k_r(k::CompactSignedPolynomialKernel, r::Number) = k.poly(r)
 function Base.:(==)(k1::CompactSignedPolynomialKernel, k2::CompactSignedPolynomialKernel)
     return k1.poly == k2.poly && k1.lengthscales == k2.lengthscales
 end
-function Base.isapprox(k1::CompactSignedPolynomialKernel, k2::CompactSignedPolynomialKernel)
+function Base.isapprox(
+    k1::CompactSignedPolynomialKernel,
+    k2::CompactSignedPolynomialKernel,
+)
     return k1.poly ≈ k2.poly && k1.lengthscales ≈ k2.lengthscales
 end
 
@@ -179,7 +185,7 @@ Compute the derivative of a CompactPolynomialKernel.
 - `m::Int`: Order along the second argument.
 
 # Returns
-- `CompactPolynomialKernel` or `CompactSignedPolynomialKernel`: The derivative of the 
+- `CompactPolynomialKernel` or `CompactSignedPolynomialKernel`: The derivative of the
 CompactPolynomialKernel object.
 
 """
@@ -189,9 +195,10 @@ function derivative(k::CompactPolynomialKernel, n::Int, m::Int)
     end
     total = n + m
     poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
-    inner_kernel = iseven(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
-           CompactSignedPolynomialKernel(poly, k.lengthscales)
-    return DerivativeKernel1D{n, m}(k, inner_kernel)
+    inner_kernel =
+        iseven(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
+        CompactSignedPolynomialKernel(poly, k.lengthscales)
+    return DerivativeKernel1D{n,m}(k, inner_kernel)
 end
 
 function derivative(k::CompactSignedPolynomialKernel, n::Int, m::Int)
@@ -200,9 +207,10 @@ function derivative(k::CompactSignedPolynomialKernel, n::Int, m::Int)
     end
     total = n + m
     poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
-    inner_kernel = isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
-           CompactSignedPolynomialKernel(poly, k.lengthscales)
-    return DerivativeKernel1D{n, m}(k, inner_kernel)
+    inner_kernel =
+        isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
+        CompactSignedPolynomialKernel(poly, k.lengthscales)
+    return DerivativeKernel1D{n,m}(k, inner_kernel)
 end
 
 function radial_antiderivative(k::CompactPolynomialKernel, n::Int)
@@ -219,5 +227,5 @@ function radial_antiderivative(k::CompactPolynomialKernel, n::Int)
             r > 1.0 ? poly_int2_norm(1.0) + (r - 1.0) * poly_int(1.0) : poly_int2_norm(r)
         )
     end
-    error("radial_antiderivative not implemented for n=$(n)")
+    return error("radial_antiderivative not implemented for n=$(n)")
 end
