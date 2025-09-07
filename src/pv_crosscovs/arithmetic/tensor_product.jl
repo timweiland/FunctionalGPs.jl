@@ -12,8 +12,8 @@ function Base.show(io::IO, op::AbstractTensorProductCrosscov)
 end
 
 function kernelmatrix(op::AbstractTensorProductCrosscov, x::AbstractVector)
-    # Khatri-rao
-    error("Not implemented")
+    # Generic vector input not implemented yet
+    throw(MethodError(kernelmatrix, (op, x)))
 end
 
 function kernelmatrix(op::AbstractTensorProductCrosscov, x::FactorizedGrid)
@@ -57,4 +57,3 @@ end
 function Base.isapprox(op1::TensorProductCrosscov, op2::TensorProductCrosscov)
     return isapprox(op1.factors, op2.factors)
 end
-

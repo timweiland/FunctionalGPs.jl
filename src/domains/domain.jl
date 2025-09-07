@@ -2,5 +2,5 @@ export Domain
 
 abstract type Domain end
 
-volume(d::Domain) = error("volume not implemented for $(typeof(d))")
-Base.in(_, d::Domain) = error("in not implemented for $(typeof(d))")
+volume(d::Domain) = throw(MethodError(volume, (d,)))
+Base.in(_, d::Domain) = throw(MethodError(in, (d,)))

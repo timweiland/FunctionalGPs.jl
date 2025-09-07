@@ -72,7 +72,7 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     return cancel_integral(k, ℒ; arg = arg)
 end
 
-box_integrals(_, _) = error("Not implemented")
+box_integrals(x, y) = throw(MethodError(box_integrals, (x, y)))
 function box_integrals(k::KernelTensorProduct, domains::FactorizedBoxDomains; arg = 2)
     if length(k.kernels) != ndims(domains)
         throw(
