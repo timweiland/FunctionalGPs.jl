@@ -6,12 +6,14 @@ struct FactorizedGrid{T} <: AbstractVector{T}
     ranges::Tuple{T, Vararg{T}}
 end
 
+Base.eltype(A::FactorizedGrid) = promote_type(map(eltype, A.ranges)...)
+
 function Base.convert(::Type{Array{T}}, A::FactorizedGrid) where {T<:Number}
     X = collect(Iterators.product(A.ranges...)) |> (M -> reinterpret(reshape, T, M))
     return moveaxis(X, 1, ndims(X))
 end
 
-Base.convert(::Type{Array}, A::FactorizedGrid) = convert(Array{Float64}, A)
+Base.convert(::Type{Array}, A::FactorizedGrid) = convert(Array{eltype(A)}, A)
 
 FactorizedGrid(ranges::AbstractVector...) = FactorizedGrid(ranges)
 
