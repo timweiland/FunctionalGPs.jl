@@ -11,7 +11,9 @@ function matrix_sqrt(C::Cholesky)
 end
 
 function matrix_sqrt(C::CHOLMOD.Factor)
-    prod_fn!(y, x) = (mul!(y, sparse(C.L), x); permute!(y, invperm(C.p)))
-    t_prod_fn!(y, x) = (xp = copy(x); permute!(xp, C.p); mul!(y, sparse(C.L)', xp))
+    Ls = sparse(C.L)
+    Pinv = invperm(C.p)
+    prod_fn!(y, x) = (mul!(y, Ls, x); permute!(y, Pinv))
+    t_prod_fn!(y, x) = (xp = copy(x); permute!(xp, C.p); mul!(y, Ls', xp))
     return LinearOperator(Float64, size(C.L, 1), size(C.L, 2), false, false, prod_fn!, t_prod_fn!, t_prod_fn!)
 end
