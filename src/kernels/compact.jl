@@ -44,7 +44,8 @@ function SearchTree(
     x::AbstractVector{T},
     metric::Distances.UnionMetrics,
 ) where {T<:Number}
-    return BallTree(convert(Matrix{Float64}, reshape(x, 1, :)), metric)
+    # Ensure a 1×N floating matrix for BallTree while preserving values
+    return BallTree(reshape(float.(collect(x)), 1, :), metric)
 end
 function inrange_point(tree::NNTree, point::T, radius::Number) where {T<:Number}
     return inrange(tree, [point], radius)
@@ -52,7 +53,8 @@ end
 inrange_point(tree::NNTree, point, radius::Number) = inrange(tree, point, radius)
 
 function kernelmatrix(k::AbstractCompactKernel, x::AbstractVector, y::AbstractVector)
-    max_dist = max(lengthscales(k)...)
+    ls = lengthscales(k)
+    max_dist = ls isa Number ? ls : maximum(ls)
     y_tree = SearchTree(y, Distances.euclidean)
     I, J = [], []
     V::Vector{Float64} = []

@@ -18,6 +18,7 @@ include("domains/test_interval.jl")
 include("domains/test_factorized_box.jl")
 
 include("kernels/test_wendland.jl")
+include("kernels/test_compact_kernelmatrix.jl")
 
 include("pv_crosscovs/arithmetic/test_scale.jl")
 include("pv_crosscovs/arithmetic/test_tensor_product.jl")
