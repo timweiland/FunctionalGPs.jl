@@ -1,17 +1,13 @@
-import AbstractGPs: AbstractGP, GP, var, mean_and_var
+import AbstractGPs: AbstractGP, GP, var, mean_and_var, FiniteGP
 using BlockArrays
-using Distributions: Normal, AbstractMvNormal
 import Distributions: MvNormal
 import Statistics: cov
-using SparseArrays: spzeros, AbstractSparseMatrix
-using PDMats: PDSparseMat
 using Memoize
 import Base: rand
 import Random: AbstractRNG
 using LinearAlgebra
 
-export LinearObservation,
-    LinearConditionalGP,
+export LinearConditionalGP,
     condition_on_observation,
     G_chol,
     μs,
@@ -21,34 +17,6 @@ export LinearObservation,
     predictive_residual
 export mean, cov
 
-# Hotfixes for sparse covariance matrices in MvNormal...
-# Maybe make a PR to Distributions.jl. But the repo is pretty unresponsive atm.
-function MvNormal(μ::AbstractVector{<:Real}, Σ::AbstractSparseMatrix{<:Real})
-    return MvNormal(μ, PDSparseMat(Σ))
-end
-cov_hotfix(x) = cov(x)
-cov_hotfix(ε::MvNormal) = ε.Σ.mat  # Default impl converts to Matrix, destroying sparsity
-
-struct LinearObservation
-    ℒ::AbstractLinearFunctional
-    ε::Union{Normal,AbstractMvNormal,Nothing}
-    y::AbstractArray
-end
-
-function LinearObservation(
-    ℒ::AbstractLinearFunctional,
-    y::AbstractArray;
-    noise::Union{Real,Nothing} = 1e-8,
-)
-    if isnothing(noise)
-        return LinearObservation(ℒ, nothing, y)
-    end
-    N = length(y)
-    Σ = spzeros(N, N)
-    Σ[diagind(Σ)] .= noise
-    return LinearObservation(ℒ, MvNormal(spzeros(N), Σ), y)
-end
-
 struct LinearConditionalGP <: AbstractGP
     prior::AbstractGP
     observations::Tuple{Vararg{LinearObservation}}
@@ -57,24 +25,31 @@ struct LinearConditionalGP <: AbstractGP
     ℒs_mean_tuple::Tuple{Vararg{AbstractArray}}
 end
 
-ℒs(f::LinearConditionalGP) = map(o -> o.ℒ, f.observations)
-εs(f::LinearConditionalGP) = map(o -> o.ε, f.observations)
+ℒs(f::LinearConditionalGP) = map(o -> o.linfunc, f.observations)
+εs(f::LinearConditionalGP) = map(o -> o.noise, f.observations)
 μs(f::LinearConditionalGP) = map(mean, εs(f))
-μs_vec(f::LinearConditionalGP) = mapreduce(o -> mean(o.ε), vcat, f.observations)
+μs_vec(f::LinearConditionalGP) = mapreduce(o -> noise_mean(o), vcat, f.observations)
 ys(f::LinearConditionalGP) = map(o -> o.y, f.observations)
 y_vec(f::LinearConditionalGP) = mapreduce(o -> reshape(o.y, :), vcat, f.observations)
 ℒs_mean_vec(f::LinearConditionalGP) = mapreduce(m -> reshape(m, :), vcat, f.ℒs_mean_tuple)
-G_unblocked(f::LinearConditionalGP) = convert(eltype(f.G.blocks), f.G)
+function G_unblocked(f::LinearConditionalGP)
+    if length(f.G.blocks) == 1
+        return f.G.blocks[1, 1]
+    else
+        convert(eltype(f.G.blocks), f.G)
+    end
+end
 @memoize predictive_residual(f::LinearConditionalGP) =
     y_vec(f) - (ℒs_mean_vec(f) + μs_vec(f))
 @memoize G_chol(f::LinearConditionalGP) = cholesky(G_unblocked(f))
 @memoize representer_weights(f::LinearConditionalGP) = G_chol(f) \ predictive_residual(f)
 
 function condition_on_observation(f::GP, observation::LinearObservation)
-    ℒ = observation.ℒ
+    ℒ = observation.linfunc
     G_block = ℒ(ℒ(f.kernel))
-    if !isnothing(observation.ε)
-        G_block += cov_hotfix(observation.ε)
+    eps_cov = noise_cov(observation)
+    if !isnothing(eps_cov)
+        G_block += eps_cov
     end
     # G_block = Symmetric(G_block)
 
@@ -88,28 +63,29 @@ function condition_on_observation(f::GP, observation::LinearObservation)
 end
 
 function condition_on_observation(
-    f::AbstractGP,
-    ℒ::AbstractLinearFunctional,
-    y::AbstractArray;
-    noise::Union{Real,Nothing} = nothing,
-)
+        f::AbstractGP,
+        ℒ::AbstractLinearFunctional,
+        y::AbstractArray;
+        noise::Union{Real, Nothing} = nothing,
+    )
     return condition_on_observation(f, LinearObservation(ℒ, y; noise = noise))
 end
 
 function condition_on_observation(
-    f::AbstractGP,
-    X::AbstractVector,
-    y::AbstractArray;
-    noise::Union{Real,Nothing} = nothing,
-)
+        f::AbstractGP,
+        X::AbstractVector,
+        y::AbstractArray;
+        noise::Union{Real, Nothing} = nothing,
+    )
     return condition_on_observation(f, EvaluationFunctional(X), y; noise = noise)
 end
 
 function condition_on_observation(f::LinearConditionalGP, observation::LinearObservation)
-    ℒ = observation.ℒ
+    ℒ = observation.linfunc
     ℒ_block = ℒ(ℒ(f.prior.kernel))
-    if !isnothing(observation.ε)
-        ℒ_block += cov_hotfix(observation.ε)
+    eps_cov = noise_cov(observation)
+    if !isnothing(eps_cov)
+        ℒ_block += eps_cov
     end
     ℒ_block = (ℒ_block + ℒ_block') / 2
     off_diagonal_blocks = ℒ(f.kℒs)
@@ -132,11 +108,11 @@ end
 
 function mean(f_cond_eval::FiniteGP{<:LinearConditionalGP})
     return mean(f_cond_eval.f.prior(f_cond_eval.x)) +
-           kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x) *
-           representer_weights(f_cond_eval.f)
+        kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x) *
+        representer_weights(f_cond_eval.f)
 end
 function cov(f_cond_eval::FiniteGP{<:LinearConditionalGP})
-    prior_cov = cov_hotfix(f_cond_eval.f.prior(f_cond_eval.x))
+    prior_cov = f_cond_eval.f.prior(f_cond_eval.x)
     xkℒs = kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x)
     C = G_chol(f_cond_eval.f)
     Z = C.L \ (xkℒs'[C.p, :])

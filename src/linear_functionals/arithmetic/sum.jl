@@ -18,19 +18,16 @@ _fallback(op::AbstractSumLinearFunctional, x, args...; kwargs...) = invoke(op, T
 (op::AbstractSumLinearFunctional)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractSumLinearFunctional)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
 (op::AbstractSumLinearFunctional)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
-function (ℒ::AbstractSumLinearFunctional)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
-    return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
-end
 
 
 struct SumLinearFunctional{N} <: AbstractSumLinearFunctional{N}
-    summands::NTuple{N,AbstractLinearFunctional}
+    summands::NTuple{N, AbstractLinearFunctional}
 
-    function SumLinearFunctional(summands::NTuple{N,AbstractLinearFunctional}) where {N}
+    function SumLinearFunctional(summands::NTuple{N, AbstractLinearFunctional}) where {N}
         if !allequal(map(output_shape, summands))
             throw(ArgumentError("All summands must have the same output shape"))
         end
-        new{N}(summands)
+        return new{N}(summands)
     end
 end
 

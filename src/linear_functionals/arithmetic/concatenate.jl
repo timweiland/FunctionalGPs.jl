@@ -25,27 +25,24 @@ end
 (op::AbstractLinFctlLinFuncOpConcat)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractLinFctlLinFuncOpConcat)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
 (op::AbstractLinFctlLinFuncOpConcat)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
-function (ℒ::AbstractLinFctlLinFuncOpConcat)(f::AbstractGP; noise::TΣy = 0) where {TΣy}
-    return LinfctlTransformedGP(f, ℒ, ℒ(f.mean), ℒ(ℒ(f.kernel)), noise)
-end
 
 function Base.show(io::IO, op::AbstractLinFctlLinFuncOpConcat)
     return print(
         io,
         "$(string(linfctl(op))) ∘ " *
-        join(["($(string(linfuncop)))" for linfuncop in reverse(linfuncops(op))], " ∘ "),
+            join(["($(string(linfuncop)))" for linfuncop in reverse(linfuncops(op))], " ∘ "),
     )
 end
 
 struct LinFctlLinFuncOpConcat{N} <: AbstractLinFctlLinFuncOpConcat{N}
     linfctl::AbstractLinearFunctional
-    linfuncops::NTuple{N,AbstractLinearFunctionOperator}
+    linfuncops::NTuple{N, AbstractLinearFunctionOperator}
 
     function LinFctlLinFuncOpConcat(
-        linfctl::AbstractLinearFunctional,
-        linfuncops::NTuple{N,AbstractLinearFunctionOperator},
-    ) where {N}
-        new{N}(linfctl, linfuncops)
+            linfctl::AbstractLinearFunctional,
+            linfuncops::NTuple{N, AbstractLinearFunctionOperator},
+        ) where {N}
+        return new{N}(linfctl, linfuncops)
     end
 end
 
@@ -54,9 +51,9 @@ function Base.:∘(op1::AbstractLinearFunctional, op2::AbstractLinearFunctionOpe
 end
 
 function Base.:∘(
-    op1::AbstractLinearFunctional,
-    op2::AbstractConcatenatedLinearFunctionOperator,
-)
+        op1::AbstractLinearFunctional,
+        op2::AbstractConcatenatedLinearFunctionOperator,
+    )
     return LinFctlLinFuncOpConcat(op1, linfuncops(op2))
 end
 
@@ -65,8 +62,8 @@ function Base.:∘(op1::AbstractLinFctlLinFuncOpConcat, op2::AbstractLinearFunct
 end
 
 function Base.:∘(
-    op1::AbstractLinFctlLinFuncOpConcat,
-    op2::AbstractConcatenatedLinearFunctionOperator,
-)
+        op1::AbstractLinFctlLinFuncOpConcat,
+        op2::AbstractConcatenatedLinearFunctionOperator,
+    )
     return LinFctlLinFuncOpConcat(linfctl(op1), (linfuncops(op2)..., linfuncops(op1)...))
 end
