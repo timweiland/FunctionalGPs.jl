@@ -24,6 +24,7 @@ include("pv_crosscovs/arithmetic/sum.jl")
 include("pv_crosscovs/arithmetic/difference.jl")
 include("pv_crosscovs/integrals/radial.jl")
 include("pv_crosscovs/integrals/compact_polynomial.jl")
+include("pv_crosscovs/integrals/matern.jl")
 
 include("linearfunctionoperators/linear_function_operator.jl")
 include("linearfunctionoperators/arithmetic/concatenate.jl")
@@ -39,8 +40,9 @@ include("linear_functionals/arithmetic/concatenate.jl")
 include("linear_functionals/arithmetic/sum.jl")
 include("linear_functionals/vectorized_lebesgue_integral.jl")
 
-include("randprocs/linfctl_transformed_gp.jl")
+include("randprocs/linear_observation.jl")
 include("randprocs/linear_conditional_gp.jl")
+include("randprocs/linfctl_transformed_gp.jl")
 
 include("problems/ibvp.jl")
 include("problems/heat.jl")
