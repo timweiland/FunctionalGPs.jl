@@ -1,4 +1,5 @@
 import AbstractGPs: AbstractGP, GP, var, mean_and_var, FiniteGP
+using AbstractGPs
 using BlockArrays
 import Distributions: MvNormal
 import Statistics: cov
@@ -107,7 +108,7 @@ function condition_on_observation(f::LinearConditionalGP, observation::LinearObs
 end
 
 function mean(f_cond_eval::FiniteGP{<:LinearConditionalGP})
-    return mean(f_cond_eval.f.prior(f_cond_eval.x)) +
+    return AbstractGPs.mean(f_cond_eval.f.prior(f_cond_eval.x)) +
         kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x) *
         representer_weights(f_cond_eval.f)
 end
@@ -115,15 +116,17 @@ function cov(f_cond_eval::FiniteGP{<:LinearConditionalGP})
     prior_cov = f_cond_eval.f.prior(f_cond_eval.x)
     xkℒs = kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x)
     C = G_chol(f_cond_eval.f)
-    Z = C.L \ (xkℒs'[C.p, :])
-    return prior_cov - Z' * Z
+    solve = C \ xkℒs'
+    cov_update = xkℒs * solve
+    return prior_cov - cov_update
 end
 function var(f_cond_eval::FiniteGP{<:LinearConditionalGP})
     prior_var = var(f_cond_eval.f.prior(f_cond_eval.x))
     xkℒs = kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x)
     C = G_chol(f_cond_eval.f)
-    Z = C.L \ (xkℒs'[C.p, :])
-    return prior_var - reshape(sum(Z .^ 2; dims = 1), size(prior_var))
+    solve = C \ xkℒs'
+    diag_update = sum(xkℒs .* transpose(solve); dims = 2)
+    return prior_var - reshape(vec(diag_update), size(prior_var))
 end
 function mean_and_var(f_cond_eval::FiniteGP{<:LinearConditionalGP})
     return (mean(f_cond_eval), var(f_cond_eval))
