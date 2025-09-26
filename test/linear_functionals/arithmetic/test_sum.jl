@@ -1,6 +1,7 @@
 using GaussPDE
 using AbstractGPs
 using KernelFunctions
+using Distributions
 import KernelFunctions: kernelmatrix
 
 @testset "SumLinearFunctional" begin
@@ -31,7 +32,7 @@ import KernelFunctions: kernelmatrix
     @test sum_fctl(C * δ3(f.kernel)) ≈ C * sum_fctl(δ3(f.kernel))
 
     sum_f = sum_fctl(f)
-    @test mean(sum_f) ≈ δ1(f.mean) + δ2(f.mean)
+    @test Distributions.mean(sum_f) ≈ δ1(f.mean) + δ2(f.mean)
     @test cov(sum_f) ≈
         δ1(δ1(f.kernel)) + δ1(δ2(f.kernel)) + δ2(δ1(f.kernel)) + δ2(δ2(f.kernel))
 

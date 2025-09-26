@@ -32,15 +32,15 @@ using FiniteDifferences
     N = 10
     noise = 1.0e-8
     ic_observation = sample_ic(p, N; noise = noise)
-    @test ic_observation.ℒ isa EvaluationFunctional
-    @test length(ic_observation.ℒ.X) == N
+    @test ic_observation.linfunc isa EvaluationFunctional
+    @test length(ic_observation.linfunc.X) == N
     @test length(ic_observation.y) == N
-    @test !isnothing(ic_observation.ε)
+    @test !isnothing(ic_observation.noise)
 
     bc_observation = sample_bc(p, N; noise = noise)
-    @test length(bc_observation.ℒ.X) == 2 * N
+    @test length(bc_observation.linfunc.X) == 2 * N
     @test size(bc_observation.y) == (N, 2)
-    @test !isnothing(bc_observation.ε)
+    @test !isnothing(bc_observation.noise)
 
     sol = solution(p)
 

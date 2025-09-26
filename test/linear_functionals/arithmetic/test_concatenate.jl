@@ -2,6 +2,7 @@ using GaussPDE
 using AbstractGPs
 using KernelFunctions
 import KernelFunctions: kernelmatrix
+using Distributions
 
 @testset "LinFctlLinFuncOpConcat" begin
     δ = EvaluationFunctional(rand(10))
@@ -30,7 +31,7 @@ import KernelFunctions: kernelmatrix
     @test concat(C * δ(f.kernel)) ≈ C * concat(δ(f.kernel))
 
     concat_f = concat(f)
-    @test mean(concat_f) ≈ δ(𝒟(f.mean))
+    @test Distributions.mean(concat_f) ≈ δ(𝒟(f.mean))
     @test cov(concat_f) ≈ δ(𝒟(δ(𝒟(f.kernel))))
 
     @test string(concat) == "$(string(δ)) ∘ ($(string(𝒟)))"
