@@ -2,17 +2,17 @@ export CompactPolynomialCovFunc1D_Identity_LebesgueIntegral, integrate
 using NearestNeighbors: BallTree, inrange
 
 struct CompactPolynomialCovFunc1D_Identity_LebesgueIntegral <:
-       RadialCovarianceFunction1D_Identity_LebesgueIntegral
+    RadialCovarianceFunction1D_Identity_LebesgueIntegral
     covfunc::CompactPolynomialKernel
     domains::AbstractVector{Interval{Float64}}
     randvar_arg::Int
 end
 
 function kernelmatrix(
-    pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
-    X::AbstractVector,
-)
-    anti = radial_antiderivative(pv.covfunc, 1)
+        pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
+        X::AbstractVector,
+    )
+    anti = radial_antiderivative(pv.covfunc, Val(1))
     ℓ = pv.covfunc.lengthscales
 
     lower_bounds = map(domain -> domain.lower, domains(pv))
@@ -38,7 +38,7 @@ function kernelmatrix(
             push!(V, val)
         end
     end
-    res = sparse(I, J, V, length(mids), length(X))
+    res = sparse(I, J, V, Base.length(mids), Base.length(X))
     if pv.randvar_arg == 2
         res = res'
     end
@@ -46,11 +46,11 @@ function kernelmatrix(
 end
 
 function integrate(
-    k::CompactPolynomialKernel,
-    domains1,
-    domains2,
-)
-    anti = radial_antiderivative(k, 2)
+        k::CompactPolynomialKernel,
+        domains1,
+        domains2,
+    )
+    anti = radial_antiderivative(k, Val(2))
     ℓ = k.lengthscales
 
     lower_bounds1 = map(domain -> domain.lower, domains1)
@@ -85,5 +85,5 @@ function integrate(
             push!(V, val)
         end
     end
-    return sparse(I, J, V, length(lower_bounds1), length(lower_bounds2))
+    return sparse(I, J, V, Base.length(lower_bounds1), Base.length(lower_bounds2))
 end

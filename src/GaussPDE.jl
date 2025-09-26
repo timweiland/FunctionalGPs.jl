@@ -13,10 +13,7 @@ include("domains/interval.jl")
 include("domains/box.jl")
 include("domains/factorized_box.jl")
 
-include("kernels/derivative_1D.jl")
-include("kernels/compact.jl")
-include("kernels/radial.jl")
-include("kernels/wendland.jl")
+include("kernels/kernels.jl")
 
 include("pv_crosscovs/pv_crosscov.jl")
 include("pv_crosscovs/evaluation.jl")

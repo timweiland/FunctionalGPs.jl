@@ -1,0 +1,5 @@
+include("derivative_1D.jl")
+include("compact.jl")
+include("radial.jl")
+include("wendland.jl")
+include("matern.jl")
