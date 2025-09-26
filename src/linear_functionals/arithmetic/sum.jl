@@ -2,23 +2,10 @@ export AbstractSumLinearFunctional
 
 abstract type AbstractSumLinearFunctional{N} <: AbstractLinearFunctional end
 summands(op::AbstractSumLinearFunctional) = op.summands
-function (op::AbstractSumLinearFunctional)(x, args...)
-    return sum([summand(x, args...) for summand in summands(op)])
-end
 
 function Base.show(io::IO, op::AbstractSumLinearFunctional)
     return print(io, join(["($(string(summand)))" for summand in summands(op)], " + "))
 end
-
-_fallback(op::AbstractSumLinearFunctional, x, args...; kwargs...) = invoke(op, Tuple{Any}, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(x::EvaluationPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(x::StackedPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(x::ZeroMean{T}, args...; kwargs...) where {T} = _fallback(op, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(x::AbstractSumPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
-(op::AbstractSumLinearFunctional)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
-
 
 struct SumLinearFunctional{N} <: AbstractSumLinearFunctional{N}
     summands::NTuple{N, AbstractLinearFunctional}

@@ -1,30 +1,9 @@
-using AbstractGPs: AbstractGP
-
 export AbstractLinFctlLinFuncOpConcat, LinFctlLinFuncOpConcat
 
 abstract type AbstractLinFctlLinFuncOpConcat{N} <: AbstractLinearFunctional end
 linfctl(op::AbstractLinFctlLinFuncOpConcat) = op.linfctl
 linfuncops(op::AbstractLinFctlLinFuncOpConcat) = op.linfuncops
 output_shape(op::AbstractLinFctlLinFuncOpConcat) = output_shape(linfctl(op))
-function (op::AbstractLinFctlLinFuncOpConcat)(x, args...; kwargs...)
-    res = x
-    for linfuncop in linfuncops(op)
-        res = linfuncop(res, args...; kwargs...)
-    end
-    return linfctl(op)(res, args...; kwargs...)
-end
-function _fallback(op::AbstractLinFctlLinFuncOpConcat, x, args...; kwargs...)
-    return invoke(op, Tuple{Any}, x, args...; kwargs...)
-end
-function (op::AbstractLinFctlLinFuncOpConcat)(::ZeroMean{T}, args...; kwargs...) where {T}
-    return zeros(T, output_shape(op)...)
-end
-(op::AbstractLinFctlLinFuncOpConcat)(pv::StackedPVCrosscov, args...; kwargs...) = _fallback(op, pv, args...; kwargs...)
-(op::AbstractLinFctlLinFuncOpConcat)(pv::EvaluationPVCrosscov, args...; kwargs...) = _fallback(op, pv, args...; kwargs...)
-(op::AbstractLinFctlLinFuncOpConcat)(x::AbstractSumPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
-(op::AbstractLinFctlLinFuncOpConcat)(x::ConstantScaledPVCrosscov, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
-(op::AbstractLinFctlLinFuncOpConcat)(k::KernelSum, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
-(op::AbstractLinFctlLinFuncOpConcat)(k::ScaledKernel, args...; kwargs...) = _fallback(op, k, args...; kwargs...)
 
 function Base.show(io::IO, op::AbstractLinFctlLinFuncOpConcat)
     return print(
