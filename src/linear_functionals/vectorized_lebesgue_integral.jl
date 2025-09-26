@@ -1,12 +1,13 @@
 import KernelFunctions: KernelTensorProduct
+using Kronecker
 
 export VectorizedLebesgueIntegral
 
-struct VectorizedLebesgueIntegral{T<:Domain} <: AbstractLinearFunctional
+struct VectorizedLebesgueIntegral{T <: Domain} <: AbstractLinearFunctional
     domains::AbstractArray{T}
 
     function VectorizedLebesgueIntegral(domains::AbstractArray{T}) where {T}
-        if length(domains) == 0
+        if Base.length(domains) == 0
             throw(ArgumentError("At least one domain must be provided"))
         end
         return new{T}(domains)
@@ -18,24 +19,40 @@ end
 output_shape(ℒ::VectorizedLebesgueIntegral) = size(ℒ.domains)
 
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-    k::CompactPolynomialKernel;
-    arg = 2,
-) where {T}
+        k::CompactPolynomialKernel;
+        arg = 2,
+    ) where {T}
     return CompactPolynomialCovFunc1D_Identity_LebesgueIntegral(k, ℒ.domains, arg)
 end
 
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-    pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
-) where {T}
+        k::HalfIntegerMaternKernel;
+        arg = 2,
+    ) where {T}
+    return Matern1D_Identity_LebesgueIntegral(k, ℒ.domains, arg)
+end
+
+function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+        pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
+    ) where {T}
     return integrate(pv.covfunc, ℒ.domains, pv.domains)
 end
 
+function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+        pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral
+    ) where {T}
+    if ℒ.domains === pv.domains
+        return integrate_radial(pv.covfunc, pv.domains)
+    end
+    return integrate_radial(pv.covfunc, ℒ.domains, pv.domains)
+end
+
 function cancel_integral(
-    k::DerivativeKernel1D{N,M},
-    ℒ::VectorizedLebesgueIntegral{Interval{T}};
-    arg = 2,
-    same_arg = true,
-) where {T,N,M}
+        k::DerivativeKernel1D{N, M},
+        ℒ::VectorizedLebesgueIntegral{Interval{T}};
+        arg = 2,
+        same_arg = true,
+    ) where {T, N, M}
     # @assert (arg == 2) ? M > 0 : N > 0
     eval_b = EvaluationFunctional(map(d -> d.upper, ℒ.domains))
     eval_a = EvaluationFunctional(map(d -> d.lower, ℒ.domains))
@@ -53,9 +70,9 @@ function cancel_integral(
 end
 
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-    k::DerivativeKernel1D{N,M};
-    arg = 2,
-) where {T,N,M}
+        k::DerivativeKernel1D{N, M};
+        arg = 2,
+    ) where {T, N, M}
     if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
         error("Not implemented")
     end
@@ -63,9 +80,9 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
 end
 
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-    k::DerivativeKernel1D{N,M,<:AbstractCompactRadialKernel};
-    arg = 2,
-) where {T,N,M}
+        k::DerivativeKernel1D{N, M, <:AbstractCompactRadialKernel};
+        arg = 2,
+    ) where {T, N, M}
     if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
         return -cancel_integral(k, ℒ; arg = arg, same_arg = false)
     end
@@ -92,29 +109,31 @@ end
 function box_integrals(pv::TensorProductCrosscov, domains::FactorizedBoxDomains)
     ℒs = map(VectorizedLebesgueIntegral, get_intervals(domains))
     return mapreduce(
-        args -> ((cur_pv, cur_ℒ) = args;
-        cur_ℒ(cur_pv)),
-        kron,
+        args -> (
+            (cur_pv, cur_ℒ) = args;
+            cur_ℒ(cur_pv)
+        ),
+        kronecker,
         zip(pv.factors, ℒs) |> collect |> reverse,
     )
 end
 
 function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
-    k::KernelTensorProduct;
-    arg = 2,
-) where {T}
+        k::KernelTensorProduct;
+        arg = 2,
+    ) where {T}
     return box_integrals(k, ℒ.domains; arg = arg)
 end
 
 function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
-    pv::TensorProductCrosscov,
-) where {T}
+        pv::TensorProductCrosscov,
+    ) where {T}
     return box_integrals(pv, ℒ.domains)
 end
 
-function (op::PartialDerivative{1,1})(
-    pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
-)
+function (op::PartialDerivative{1, 1})(
+        pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
+    )
     k = pv.covfunc
     dk = op(k; arg = randproc_arg(pv))
     ℒ = VectorizedLebesgueIntegral(pv.domains)
