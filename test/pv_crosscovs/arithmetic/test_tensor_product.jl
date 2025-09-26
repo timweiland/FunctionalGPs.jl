@@ -1,4 +1,5 @@
 using GaussPDE
+using Kronecker: KroneckerProduct
 using LinearAlgebra
 
 @testset "TensorProductCrosscov" begin
@@ -13,7 +14,7 @@ using LinearAlgebra
     @test pv_prod isa TensorProductCrosscov{2}
     @test pv_prod.factors == (δ₁k, δ₂k)
 
-    @test_throws ArgumentError δ₁k ⊗ δ₂(k, arg=1)
+    @test_throws ArgumentError δ₁k ⊗ δ₂(k, arg = 1)
 
     @test string(pv_prod) == "$(string(δ₁k)) ⊗ $(string(δ₂k))"
 
@@ -26,6 +27,15 @@ using LinearAlgebra
     @testset "Factorized input" begin
         x = FactorizedGrid([0.1, 0.3], [0.15, 0.25])
         @test kernelmatrix(pv_prod, x) ≈ kron(kernelmatrix(δ₂k, x[2]), kernelmatrix(δ₁k, x[1]))
+    end
+
+    @testset "Evaluation functional" begin
+        X = FactorizedGrid([0.1, 0.3], [0.15, 0.25])
+        δ_factorized = EvaluationFunctional(X)
+        result = δ_factorized(pv_prod)
+        @test result isa KroneckerProduct
+        expected = kron(kernelmatrix(δ₂k, X[2]), kernelmatrix(δ₁k, X[1]))
+        @test Matrix(result) ≈ expected
     end
 
     k1 = WendlandKernel(1, 3, 0.8)

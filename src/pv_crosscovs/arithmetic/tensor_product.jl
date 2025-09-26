@@ -19,19 +19,19 @@ end
 function kernelmatrix(op::AbstractTensorProductCrosscov, x::FactorizedGrid)
     return mapreduce(
         args -> ((i, factor) = args; kernelmatrix(factor, x[i])),
-        kron,
+        kronecker,
         factors(op) |> enumerate |> collect |> reverse,
     )
 end
 
 struct TensorProductCrosscov{N} <: AbstractTensorProductCrosscov
-    factors::NTuple{N,ProcessVectorCrossCovariance}
+    factors::NTuple{N, ProcessVectorCrossCovariance}
 
-    function TensorProductCrosscov(factors::NTuple{N,ProcessVectorCrossCovariance}) where {N}
+    function TensorProductCrosscov(factors::NTuple{N, ProcessVectorCrossCovariance}) where {N}
         if !allequal(map(randvar_arg, factors))
             throw(ArgumentError("All factors must have the same randvar arg"))
         end
-        new{N}(factors)
+        return new{N}(factors)
     end
 end
 

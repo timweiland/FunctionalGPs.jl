@@ -4,6 +4,7 @@ using LinearAlgebra
 
 include("util/array_ops.jl")
 include("util/unified_cholesky.jl")
+include("util/kronecker.jl")
 
 include("factorized_grid.jl")
 

@@ -8,7 +8,7 @@ end
 
 Base.eltype(A::FactorizedGrid) = promote_type(map(eltype, A.ranges)...)
 
-function Base.convert(::Type{Array{T}}, A::FactorizedGrid) where {T<:Number}
+function Base.convert(::Type{Array{T}}, A::FactorizedGrid) where {T <: Number}
     X = collect(Iterators.product(A.ranges...)) |> (M -> reinterpret(reshape, T, M))
     return moveaxis(X, 1, ndims(X))
 end
@@ -26,7 +26,7 @@ Base.getindex(A::FactorizedGrid, i::Integer) = A.ranges[i]
 Base.axes(A::FactorizedGrid, i::Integer) = 1:length(A.ranges[i])
 
 # Index into the grid
-function Base.getindex(A::FactorizedGrid, I::Vararg{Integer,N}) where {N}
+function Base.getindex(A::FactorizedGrid, I::Vararg{Integer, N}) where {N}
     @assert length(I) == length(A.ranges)
     return [A.ranges[i][I[i]] for i in 1:N]
 end
@@ -37,7 +37,7 @@ function kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid, y::FactorizedGr
 
     Ks =
         (kernelmatrix(k.kernels[i], x.ranges[i], y.ranges[i]) for i in 1:length(x.ranges))
-    return reduce(kron, reverse(Tuple(Ks)))
+    return reduce(kronecker, reverse(Tuple(Ks)))
 end
 kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid) = kernelmatrix(k, x, x)
 function kernelmatrix_diag(k::KernelTensorProduct, x::FactorizedGrid)
@@ -47,5 +47,5 @@ function kernelmatrix_diag(k::KernelTensorProduct, x::FactorizedGrid)
 end
 
 function Base.show(io::IO, A::FactorizedGrid)
-    print(io, "FactorizedGrid($(size(A)))")
+    return print(io, "FactorizedGrid($(size(A)))")
 end
