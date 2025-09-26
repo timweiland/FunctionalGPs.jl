@@ -8,7 +8,7 @@ struct EvaluationPVCrosscov{EvalArg, TK <: Kernel, TL} <: ProcessVectorCrossCova
     linfunc::TL
 end
 
-function EvaluationPVCrosscov(k::Kernel, linfunc, eval_arg::Integer)
+function EvaluationPVCrosscov(k::Kernel, linfunc::EvaluationFunctional, eval_arg::Integer)
     arg = Int(eval_arg)
     @assert arg ∈ (1, 2)
     return EvaluationPVCrosscov{arg, typeof(k), typeof(linfunc)}(arg, k, linfunc)
