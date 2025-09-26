@@ -10,7 +10,7 @@ using Random
     X = range(0, 3; step = 0.25)
 
     @testset "One-sided, k = $k, randvar_arg = $randvar_arg" for k in 1:3,
-        randvar_arg in [1, 2]
+            randvar_arg in [1, 2]
 
         w = WendlandKernel(1, k, ℓ)
         pv = CompactPolynomialCovFunc1D_Identity_LebesgueIntegral(w, domains, randvar_arg)
@@ -25,7 +25,7 @@ using Random
                 X[j],
                 domains[i].lower,
                 domains[i].upper,
-            ) rtol = 1e-3 atol = 1e-8
+            ) rtol = 1.0e-3 atol = 1.0e-8
         end
     end
 
@@ -42,7 +42,7 @@ using Random
                 domains[i].upper,
                 domains2[j].lower,
                 domains2[j].upper,
-            ) rtol = 1e-3 atol = 1e-8
+            ) rtol = 1.0e-3 atol = 1.0e-8
         end
     end
 end

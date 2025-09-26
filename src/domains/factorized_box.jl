@@ -2,13 +2,13 @@ import KernelFunctions: ⊗
 
 export FactorizedBoxDomains, get_intervals
 
-struct FactorizedBoxDomains{N,T} <: AbstractArray{BoxDomain{T},N}
+struct FactorizedBoxDomains{N, T} <: AbstractArray{BoxDomain{T}, N}
     interval_vecs::AbstractVector{<:AbstractVector{Interval{T}}}
 
     function FactorizedBoxDomains(
-        interval_vecs::AbstractVector{<:AbstractVector{Interval{T}}},
-    ) where {T}
-        return new{length(interval_vecs),T}(interval_vecs)
+            interval_vecs::AbstractVector{<:AbstractVector{Interval{T}}},
+        ) where {T}
+        return new{length(interval_vecs), T}(interval_vecs)
     end
 end
 
@@ -42,15 +42,15 @@ get_intervals(domains::FactorizedBoxDomains, i::Int) = domains.interval_vecs[i]
 get_intervals(domains::FactorizedBoxDomains) = domains.interval_vecs
 
 function ⊗(
-    intervals1::AbstractVector{Interval{T}},
-    intervals2::AbstractVector{Interval{T}},
-) where {T}
+        intervals1::AbstractVector{Interval{T}},
+        intervals2::AbstractVector{Interval{T}},
+    ) where {T}
     return FactorizedBoxDomains([intervals1, intervals2])
 end
 
 function ⊗(
-    box_domains::FactorizedBoxDomains,
-    intervals::AbstractVector{Interval{T}}
-) where {T}
+        box_domains::FactorizedBoxDomains,
+        intervals::AbstractVector{Interval{T}}
+    ) where {T}
     return FactorizedBoxDomains([get_intervals(box_domains)..., intervals])
 end

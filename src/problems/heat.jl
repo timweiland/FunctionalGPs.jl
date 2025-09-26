@@ -12,12 +12,12 @@ struct Heat1DIBVPTruncatedSineICDirichletBC <: IBVP
 end
 
 function Heat1DIBVPTruncatedSineICDirichletBC(
-    domain::BoxDomain;
-    c::Float64,
-    ρ::Float64,
-    κ::Float64,
-    ic_coeffs::AbstractVector{<:Real},
-)
+        domain::BoxDomain;
+        c::Float64,
+        ρ::Float64,
+        κ::Float64,
+        ic_coeffs::AbstractVector{<:Real},
+    )
     return Heat1DIBVPTruncatedSineICDirichletBC(domain, c, ρ, κ, ic_coeffs)
 end
 
@@ -30,15 +30,17 @@ function lindiffops(p::Heat1DIBVPTruncatedSineICDirichletBC)
     )
 end
 function ic_fn(p::Heat1DIBVPTruncatedSineICDirichletBC, x)
-    return sum(map(1:length(p.ic_coeffs)) do i
-        return p.ic_coeffs[i] * sin.(i * π .* x)
-    end)
+    return sum(
+        map(1:length(p.ic_coeffs)) do i
+            return p.ic_coeffs[i] * sin.(i * π .* x)
+        end
+    )
 end
 function sample_ic(
-    p::Heat1DIBVPTruncatedSineICDirichletBC,
-    N::Int;
-    noise::Union{Real,Nothing} = 1e-8,
-)
+        p::Heat1DIBVPTruncatedSineICDirichletBC,
+        N::Int;
+        noise::Union{Real, Nothing} = 1.0e-8,
+    )
     X_ic = FactorizedGrid(
         [0.0],
         convert(Vector, range(p.domain[2, 1]; stop = p.domain[2, 2], length = N)),
@@ -47,12 +49,12 @@ function sample_ic(
     Y_ic = ic_fn(p, Xs)
     return LinearObservation(EvaluationFunctional(X_ic), Y_ic; noise = noise)
 end
-bc_fn(::Heat1DIBVPTruncatedSineICDirichletBC, x) = spzeros(size(x)[1:(end-1)]...)
+bc_fn(::Heat1DIBVPTruncatedSineICDirichletBC, x) = spzeros(size(x)[1:(end - 1)]...)
 function sample_bc(
-    p::Heat1DIBVPTruncatedSineICDirichletBC,
-    N::Int;
-    noise::Union{Real,Nothing} = 1e-8,
-)
+        p::Heat1DIBVPTruncatedSineICDirichletBC,
+        N::Int;
+        noise::Union{Real, Nothing} = 1.0e-8,
+    )
     X_bc = FactorizedGrid(
         convert(Vector, range(p.domain[1, 1]; stop = p.domain[1, 2], length = N)),
         [0.0, 1.0],
@@ -71,7 +73,7 @@ function solution(p::Heat1DIBVPTruncatedSineICDirichletBC)
         return sum(
             map(1:length(p.ic_coeffs)) do i
                 return p.ic_coeffs[i] .* exp.(-decay_rates[i] .* (T .- p.domain[1, 1])) .*
-                       sin.(half_angular_frequencies[i] .* (X .- p.domain[2, 1]))
+                    sin.(half_angular_frequencies[i] .* (X .- p.domain[2, 1]))
             end,
         )
     end

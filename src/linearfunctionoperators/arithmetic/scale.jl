@@ -12,38 +12,38 @@ function _fallback(op::AbstractScaledLinearFunctionOperator, x, args...; kwargs.
     return invoke(op, Tuple{Any}, x, args...; kwargs...)
 end
 function (op::AbstractScaledLinearFunctionOperator)(
-    x::EvaluationPVCrosscov,
-    args...;
-    kwargs...,
-)
+        x::EvaluationPVCrosscov,
+        args...;
+        kwargs...,
+    )
     return _fallback(op, x, args...; kwargs...)
 end
 function (op::AbstractScaledLinearFunctionOperator)(
-    x::StackedPVCrosscov,
-    args...;
-    kwargs...,
-)
+        x::StackedPVCrosscov,
+        args...;
+        kwargs...,
+    )
     return _fallback(op, x, args...; kwargs...)
 end
 function (op::AbstractScaledLinearFunctionOperator)(
-    x::AbstractSumPVCrosscov,
-    args...;
-    kwargs...,
-)
+        x::AbstractSumPVCrosscov,
+        args...;
+        kwargs...,
+    )
     return _fallback(op, x, args...; kwargs...)
 end
 function (op::AbstractScaledLinearFunctionOperator)(
-    x::ConstantScaledPVCrosscov,
-    args...;
-    kwargs...,
-)
+        x::ConstantScaledPVCrosscov,
+        args...;
+        kwargs...,
+    )
     return _fallback(op, x, args...; kwargs...)
 end
 function (op::AbstractScaledLinearFunctionOperator)(
-    x::ZeroMean{T},
-    args...;
-    kwargs...,
-) where {T}
+        x::ZeroMean{T},
+        args...;
+        kwargs...,
+    ) where {T}
     return ZeroMean{T}()
 end
 function (op::AbstractScaledLinearFunctionOperator)(x::KernelSum, args...; kwargs...)
@@ -59,8 +59,8 @@ end
 # end
 # scale(op::VariablyScaledLinearFunctionOperator) = op.scale_fn
 
-struct ConstantScaledLinearFunctionOperator{T<:AbstractLinearFunctionOperator} <:
-       AbstractScaledLinearFunctionOperator{T}
+struct ConstantScaledLinearFunctionOperator{T <: AbstractLinearFunctionOperator} <:
+    AbstractScaledLinearFunctionOperator{T}
     linfuncop::AbstractLinearFunctionOperator
     scalar::Number
 end
@@ -77,7 +77,7 @@ end
 #     return VariablyScaledLinearFunctionOperator(y, x)
 # end
 
-function Base.:(*)(x::Number, y::T) where {T<:AbstractLinearFunctionOperator}
+function Base.:(*)(x::Number, y::T) where {T <: AbstractLinearFunctionOperator}
     if x == 1
         return y
     end
@@ -85,9 +85,9 @@ function Base.:(*)(x::Number, y::T) where {T<:AbstractLinearFunctionOperator}
 end
 
 function Base.:(*)(
-    x::Number,
-    y::ConstantScaledLinearFunctionOperator{T},
-) where {T<:AbstractLinearFunctionOperator}
+        x::Number,
+        y::ConstantScaledLinearFunctionOperator{T},
+    ) where {T <: AbstractLinearFunctionOperator}
     if x == 1
         return y
     end

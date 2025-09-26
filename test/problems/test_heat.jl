@@ -20,17 +20,17 @@ using FiniteDifferences
     ℒs = lindiffops(p)
     @test length(ℒs) == 1
     ℒ = ℒs[1]
-    @test ℒ isa LinearDifferentialOperator{2,1,2}
+    @test ℒ isa LinearDifferentialOperator{2, 1, 2}
     @test ℒ.idx_dict[1] == Dict((1, 0) => c * ρ, (0, 2) => -κ)
 
     x = [0.5, 0.6, 0.7]
     @test ic_fn(p, x) ≈
-          ic_coeffs[1] * sin.(π .* x) +
-          ic_coeffs[2] * sin.(2π .* x) +
-          ic_coeffs[3] * sin.(3π .* x)
+        ic_coeffs[1] * sin.(π .* x) +
+        ic_coeffs[2] * sin.(2π .* x) +
+        ic_coeffs[3] * sin.(3π .* x)
 
     N = 10
-    noise = 1e-8
+    noise = 1.0e-8
     ic_observation = sample_ic(p, N; noise = noise)
     @test ic_observation.ℒ isa EvaluationFunctional
     @test length(ic_observation.ℒ.X) == N
@@ -48,9 +48,9 @@ using FiniteDifferences
     dx²_fd = (t, x) -> central_fdm(12, 2)((χ) -> sol(t, χ), x)
     heat_op_fd(t, x) = c * ρ * dt_fd(t, x) - κ * dx²_fd(t, x)
 
-    ts = range(0.05; stop = 2.0 - 1e-2, length = 10)
-    xs = range(0.0 + 1e-2; stop = 1.0 - 1e-2, length = 10)
+    ts = range(0.05; stop = 2.0 - 1.0e-2, length = 10)
+    xs = range(0.0 + 1.0e-2; stop = 1.0 - 1.0e-2, length = 10)
     @testset "Solution satisfies heat equation (t=$t, x=$x)" for t in ts, x in xs
-        @test heat_op_fd(t, x) ≈ 0.0 atol = 1e-4
+        @test heat_op_fd(t, x) ≈ 0.0 atol = 1.0e-4
     end
 end

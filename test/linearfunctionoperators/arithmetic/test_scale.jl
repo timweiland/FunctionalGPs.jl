@@ -13,15 +13,15 @@ end
 
     @test 42.0 * 𝒟₁ isa ConstantScaledLinearFunctionOperator{PartialDerivative{1, 1}}
     @test 42 * 𝒟₁ isa ConstantScaledLinearFunctionOperator{PartialDerivative{1, 1}}
-    @test 10//8 * 𝒟₁ isa ConstantScaledLinearFunctionOperator{PartialDerivative{1, 1}}
+    @test 10 // 8 * 𝒟₁ isa ConstantScaledLinearFunctionOperator{PartialDerivative{1, 1}}
     @test 1 * 𝒟₁ isa PartialDerivative
 
     f = GP(WendlandKernel(1, 3))
     scaled_funcop = 42.0 * 𝒟₁
     @test scaled_funcop(f.mean) isa ZeroMean
-    @test scaled_funcop(𝒟₂(f.kernel), arg=1) ≈ 42.0 * 𝒟₁(𝒟₂(f.kernel), arg=1)
+    @test scaled_funcop(𝒟₂(f.kernel), arg = 1) ≈ 42.0 * 𝒟₁(𝒟₂(f.kernel), arg = 1)
     @test scaled_funcop(scaled_funcop(f.kernel)) ≈
-            42.0^2 * 𝒟₁(𝒟₁(f.kernel))
+        42.0^2 * 𝒟₁(𝒟₁(f.kernel))
 
     δ1 = EvaluationFunctional(rand(10))
     δ2 = EvaluationFunctional(rand(4))

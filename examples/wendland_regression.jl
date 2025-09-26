@@ -39,6 +39,6 @@ samples = μ .+ (sparse(C.L) * randn(length(μ), 20))[invperm(C.p), :]
 # plot(0:plot_step:2π, samples[:, 1]; label="Samples")
 
 # # Plot posterior.
-scatter(x, y; label="Data")
-plot!(0:plot_step:2π, samples; alpha=0.2, color="gray", label="")
-plot!(0:plot_step:2π, p_fx; label="Posterior")
+scatter(x, y; label = "Data")
+plot!(0:plot_step:2π, samples; alpha = 0.2, color = "gray", label = "")
+plot!(0:plot_step:2π, p_fx; label = "Posterior")

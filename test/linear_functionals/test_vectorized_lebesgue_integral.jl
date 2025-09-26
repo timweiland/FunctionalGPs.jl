@@ -5,7 +5,7 @@ using GaussPDE
         w = WendlandKernel(1, 3, 7 // 10)
         domains = intervals_from_endpoints(range(0, 4; step = 0.3))
         ℒ = VectorizedLebesgueIntegral(domains)
-        ℒw = ℒ(w, arg=1)
+        ℒw = ℒ(w, arg = 1)
         wℒ = ℒ(w)
         @test ℒw isa CompactPolynomialCovFunc1D_Identity_LebesgueIntegral
         @test wℒ isa CompactPolynomialCovFunc1D_Identity_LebesgueIntegral

@@ -22,10 +22,10 @@ _fallback(op::AbstractSumLinearFunctionOperator, x, args...; kwargs...) = invoke
 (op::AbstractSumLinearFunctionOperator)(x::ScaledKernel, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 
 struct SumLinearFunctionOperator{N} <: AbstractSumLinearFunctionOperator{N}
-    summands::NTuple{N,AbstractLinearFunctionOperator}
+    summands::NTuple{N, AbstractLinearFunctionOperator}
 
-    function SumLinearFunctionOperator(summands::NTuple{N,AbstractLinearFunctionOperator}) where {N}
-        new{N}(summands)
+    function SumLinearFunctionOperator(summands::NTuple{N, AbstractLinearFunctionOperator}) where {N}
+        return new{N}(summands)
     end
 end
 

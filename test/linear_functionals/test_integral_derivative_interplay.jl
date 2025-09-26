@@ -28,7 +28,7 @@ end
                     X[i],
                     intervals[j].lower,
                     intervals[j].upper,
-                ) rtol = 1e-3 atol = 1e-8
+                ) rtol = 1.0e-3 atol = 1.0e-8
             end
         end
 
@@ -38,19 +38,19 @@ end
             idcs = random_idcs(K, 10)
             for (i, j) in idcs
                 @test K[i, j] ≈ covfunc_integral_two_sided_quad(
-                    dx(dx(k), arg=1),
+                    dx(dx(k), arg = 1),
                     intervals[i].lower,
                     intervals[i].upper,
                     intervals[j].lower,
                     intervals[j].upper,
-                ) rtol = 1e-3 atol = 1e-8
+                ) rtol = 1.0e-3 atol = 1.0e-8
             end
         end
     end
 
     @testset "Crossplay between arguments" begin
-        dk = dx(k, arg=1)
-        dk∫ = ∫(dk, arg=2)
+        dk = dx(k, arg = 1)
+        dk∫ = ∫(dk, arg = 2)
 
         X = range(0, 3; step = 0.25)
         K = kernelmatrix(dk∫, X)
@@ -62,7 +62,7 @@ end
                 X[i],
                 intervals[j].lower,
                 intervals[j].upper,
-            ) rtol = 1e-3 atol = 1e-8
+            ) rtol = 1.0e-3 atol = 1.0e-8
         end
     end
 end

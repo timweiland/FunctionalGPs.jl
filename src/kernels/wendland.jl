@@ -3,7 +3,7 @@ using Polynomials
 export WendlandPolynomial, WendlandKernel, ϕ_l
 
 pascal_row(n::Int) = [binomial(n, k) for k in 0:n]
-ϕ_l(l::Int) = (bins = pascal_row(l); Polynomial(map(i -> (-1)^(i + 1) * bins[i], 1:l+1)))
+ϕ_l(l::Int) = (bins = pascal_row(l); Polynomial(map(i -> (-1)^(i + 1) * bins[i], 1:(l + 1))))
 
 function WendlandPolynomial(d::Int, k::Int)
     l = Int(d ÷ 2 + k + 1)
@@ -20,9 +20,9 @@ end
 
 WendlandKernel(d::Int, k::Int) = CompactPolynomialKernel(WendlandPolynomial(d, k), 1.0)
 function WendlandKernel(
-    d::Int,
-    k::Int,
-    lengthscales::Union{Number,AbstractVector{Number}},
-)
+        d::Int,
+        k::Int,
+        lengthscales::Union{Number, AbstractVector{Number}},
+    )
     return CompactPolynomialKernel(WendlandPolynomial(d, k), lengthscales)
 end

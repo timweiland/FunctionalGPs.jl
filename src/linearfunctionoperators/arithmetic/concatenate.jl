@@ -4,10 +4,10 @@ using AbstractGPs: AbstractGP
 abstract type AbstractConcatenatedLinearFunctionOperator{N} <: AbstractLinearFunctionOperator end
 linfuncops(op::AbstractConcatenatedLinearFunctionOperator) = op.linfuncops
 function (op::AbstractConcatenatedLinearFunctionOperator)(
-    x::T,
-    args...;
-    kwargs...,
-) where {T}
+        x::T,
+        args...;
+        kwargs...,
+    ) where {T}
     res = x
     for linfuncop in linfuncops(op)
         res = linfuncop(res, args...; kwargs...)
@@ -32,12 +32,12 @@ function Base.show(io::IO, op::AbstractConcatenatedLinearFunctionOperator)
 end
 
 struct ConcatenatedLinearFunctionOperator{N} <: AbstractConcatenatedLinearFunctionOperator{N}
-    linfuncops::NTuple{N,AbstractLinearFunctionOperator}
+    linfuncops::NTuple{N, AbstractLinearFunctionOperator}
 
     function ConcatenatedLinearFunctionOperator(
-        linfuncops::NTuple{N,AbstractLinearFunctionOperator},
-    ) where {N}
-        new{N}(linfuncops)
+            linfuncops::NTuple{N, AbstractLinearFunctionOperator},
+        ) where {N}
+        return new{N}(linfuncops)
     end
 end
 
@@ -46,22 +46,22 @@ function Base.:∘(op1::AbstractLinearFunctionOperator, op2::AbstractLinearFunct
 end
 
 function Base.:∘(
-    op1::AbstractConcatenatedLinearFunctionOperator,
-    op2::AbstractLinearFunctionOperator,
-)
+        op1::AbstractConcatenatedLinearFunctionOperator,
+        op2::AbstractLinearFunctionOperator,
+    )
     return ConcatenatedLinearFunctionOperator((op2, linfuncops(op1)...))
 end
 
 function Base.:∘(
-    op1::AbstractLinearFunctionOperator,
-    op2::AbstractConcatenatedLinearFunctionOperator,
-)
+        op1::AbstractLinearFunctionOperator,
+        op2::AbstractConcatenatedLinearFunctionOperator,
+    )
     return ConcatenatedLinearFunctionOperator((linfuncops(op2)..., op1))
 end
 
 function Base.:∘(
-    op1::AbstractConcatenatedLinearFunctionOperator,
-    op2::AbstractConcatenatedLinearFunctionOperator,
-)
+        op1::AbstractConcatenatedLinearFunctionOperator,
+        op2::AbstractConcatenatedLinearFunctionOperator,
+    )
     return ConcatenatedLinearFunctionOperator((linfuncops(op2)..., linfuncops(op1)...))
 end

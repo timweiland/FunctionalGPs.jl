@@ -18,16 +18,16 @@ function kernelmatrix(op::AbstractSumPVCrosscov, x::AbstractVector)
 end
 
 struct SumPVCrosscov{N} <: AbstractSumPVCrosscov
-    summands::NTuple{N,ProcessVectorCrossCovariance}
+    summands::NTuple{N, ProcessVectorCrossCovariance}
 
-    function SumPVCrosscov(summands::NTuple{N,ProcessVectorCrossCovariance}) where {N}
+    function SumPVCrosscov(summands::NTuple{N, ProcessVectorCrossCovariance}) where {N}
         if !allequal(map(randvar_batch_size, summands))
             throw(ArgumentError("All summands must have the same randvar batch size"))
         end
         if !allequal(map(randvar_arg, summands))
             throw(ArgumentError("All summands must have the same randvar arg"))
         end
-        new{N}(summands)
+        return new{N}(summands)
     end
 end
 

@@ -8,7 +8,7 @@ output_shape(op::AbstractLinearFunctional) = op.output_shape
 (ℒ::AbstractLinearFunctional)(::ZeroMean{T}, args...) where {T} = zeros(T, output_shape(ℒ)...)
 
 function (ℒ::AbstractLinearFunctional)(pv::EvaluationPVCrosscov)
-    return kernelmatrix(ℒ(pv.k, arg=randproc_arg(pv)), pv.X)
+    return kernelmatrix(ℒ(pv.k, arg = randproc_arg(pv)), pv.linfunc.X)
 end
 
 function (ℒ::AbstractLinearFunctional)(pv::StackedPVCrosscov)

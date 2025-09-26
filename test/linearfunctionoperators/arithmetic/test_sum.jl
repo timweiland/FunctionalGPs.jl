@@ -22,9 +22,9 @@ end
     f = GP(WendlandKernel(1, 3))
     sum_funcop = 𝒟₁ + 𝒟₂
     @test sum_funcop(f.mean) isa ZeroMean
-    @test sum_funcop(𝒟₃(f.kernel), arg=1) ≈ 𝒟₁(𝒟₃(f.kernel), arg=1) + 𝒟₂(𝒟₃(f.kernel), arg=1)
+    @test sum_funcop(𝒟₃(f.kernel), arg = 1) ≈ 𝒟₁(𝒟₃(f.kernel), arg = 1) + 𝒟₂(𝒟₃(f.kernel), arg = 1)
     @test sum_funcop(sum_funcop(f.kernel)) ≈
-            𝒟₁(𝒟₁(f.kernel)) + 𝒟₁(𝒟₂(f.kernel)) + 𝒟₂(𝒟₁(f.kernel)) + 𝒟₂(𝒟₂(f.kernel))
+        𝒟₁(𝒟₁(f.kernel)) + 𝒟₁(𝒟₂(f.kernel)) + 𝒟₂(𝒟₁(f.kernel)) + 𝒟₂(𝒟₂(f.kernel))
 
     δ1 = EvaluationFunctional(rand(10))
     δ2 = EvaluationFunctional(rand(4))

@@ -1,15 +1,15 @@
 export PartialDerivative
 using KernelFunctions
 
-struct PartialDerivative{N,M} <: AbstractDifferentialOperator
+struct PartialDerivative{N, M} <: AbstractDifferentialOperator
     output_idx::Integer
-    multi_idx::NTuple{M,Integer}
+    multi_idx::NTuple{M, Integer}
     order::Integer
 
-    function PartialDerivative{N,M}(
-        output_idx::Integer,
-        multi_idx::NTuple{M,Integer},
-    ) where {N,M}
+    function PartialDerivative{N, M}(
+            output_idx::Integer,
+            multi_idx::NTuple{M, Integer},
+        ) where {N, M}
         if !(1 <= output_idx <= N)
             throw(DomainError(output_idx, "output_idx must be between 1 and $N"))
         end
@@ -18,15 +18,15 @@ struct PartialDerivative{N,M} <: AbstractDifferentialOperator
     end
 end
 
-function PartialDerivative(multi_idx::NTuple{M,Integer}) where {M}
-    return PartialDerivative{1,M}(1, multi_idx)
+function PartialDerivative(multi_idx::NTuple{M, Integer}) where {M}
+    return PartialDerivative{1, M}(1, multi_idx)
 end
 
 function PartialDerivative{N}(
-    output_idx::Integer,
-    multi_idx::NTuple{M,Integer},
-) where {N,M}
-    return PartialDerivative{N,M}(output_idx, multi_idx)
+        output_idx::Integer,
+        multi_idx::NTuple{M, Integer},
+    ) where {N, M}
+    return PartialDerivative{N, M}(output_idx, multi_idx)
 end
 
 UNDERSCORE_CODE_START = 0x2080
@@ -62,20 +62,20 @@ function Base.show(io::IO, op::PartialDerivative)
     )
 end
 
-function (op::PartialDerivative{1,M})(k::KernelTensorProduct; kwargs...) where {M}
+function (op::PartialDerivative{1, M})(k::KernelTensorProduct; kwargs...) where {M}
     @assert M == length(op.multi_idx)
     ks = Vector{Kernel}(undef, length(op.multi_idx))
     for (i, order) in enumerate(op.multi_idx)
-        pd = PartialDerivative{1,1}(1, (order,))
+        pd = PartialDerivative{1, 1}(1, (order,))
         ks[i] = pd(k.kernels[i]; kwargs...)
     end
     return KernelTensorProduct(ks)
 end
 
-function (op::PartialDerivative{1,1})(
-    k::Union{CompactPolynomialKernel,CompactSignedPolynomialKernel, DerivativeKernel1D};
-    arg::Integer = 2,
-)
+function (op::PartialDerivative{1, 1})(
+        k::Union{CompactPolynomialKernel, CompactSignedPolynomialKernel, DerivativeKernel1D};
+        arg::Integer = 2,
+    )
     if arg ∉ [1, 2]
         throw(DomainError(arg, "arg must be 1 or 2"))
     end
@@ -86,7 +86,7 @@ function (op::PartialDerivative{1,1})(
     end
 end
 
-function (op::PartialDerivative{1, M})(pv::TensorProductCrosscov{M}) where M
+function (op::PartialDerivative{1, M})(pv::TensorProductCrosscov{M}) where {M}
     factors = Vector{ProcessVectorCrossCovariance}(undef, M)
     for (i, order) in enumerate(op.multi_idx)
         pd = PartialDerivative((order,))

@@ -1,10 +1,10 @@
 export Interval, volume, uniform_grid_n, uniform_grid_step, intervals_from_endpoints
 
-struct Interval{T<:Real} <: Domain
+struct Interval{T <: Real} <: Domain
     lower::T
     upper::T
 
-    function Interval(lower::T, upper::T) where {T<:Real}
+    function Interval(lower::T, upper::T) where {T <: Real}
         if !(lower <= upper)
             throw(ArgumentError("Lower bound may not be larger than upper bound"))
         end
@@ -34,5 +34,5 @@ function uniform_grid_step(interval::Interval, step::Real)
 end
 
 function intervals_from_endpoints(endpoints::AbstractVector)
-    return [Interval(endpoints[i], endpoints[i+1]) for i in 1:length(endpoints)-1]
+    return [Interval(endpoints[i], endpoints[i + 1]) for i in 1:(Base.length(endpoints) - 1)]
 end
