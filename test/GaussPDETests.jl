@@ -24,6 +24,7 @@ include("kernels/test_matern_derivative.jl")
 include("pv_crosscovs/arithmetic/test_scale.jl")
 include("pv_crosscovs/arithmetic/test_tensor_product.jl")
 include("pv_crosscovs/integrals/test_wendland.jl")
+include("pv_crosscovs/test_radial_integrals.jl")
 
 include("linearfunctionoperators/arithmetic/test_concatenate.jl")
 include("linearfunctionoperators/arithmetic/test_scale.jl")
