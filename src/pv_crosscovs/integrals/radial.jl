@@ -43,6 +43,104 @@ function radial_covfunc_two_sided_integral(
     return ℓ^2 * (K(b, c) - K(a, c) - K(b, d) + K(a, d))
 end
 
+"""
+    _interval_bounds_matrices(domains, ::Type{T})
+
+Return matrices of lower and upper bounds (each `n×1`) for the provided
+interval vector, converted to element type `T`.
+"""
+function _interval_bounds_matrices(domains, ::Type{T}) where {T <: AbstractFloat}
+    n = length(domains)
+    lowers = Matrix{T}(undef, n, 1)
+    uppers = Matrix{T}(undef, n, 1)
+    @inbounds for i in 1:n
+        d = domains[i]
+        lowers[i, 1] = T(d.lower)
+        uppers[i, 1] = T(d.upper)
+    end
+    return lowers, uppers
+end
+
+"""
+    _extract_lengthscale(ℓ)
+
+Return the scalar lengthscale from a 1D kernel specification.
+"""
+_extract_lengthscale(ℓ) = only(ℓ)
+
+"""
+    _lazy_radial_integral_evaluation_matrix(pv, X)
+
+Construct a lazy one-sided radial integral matrix when the kernel supports the
+stationary signed representation. Returns `nothing` if the fast path is
+unavailable.
+"""
+function _lazy_radial_integral_evaluation_matrix(
+        pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral,
+        X::AbstractVector,
+    )
+    domains_vec = domains(pv)
+    isempty(domains_vec) && return nothing
+    base_type = promote_type(eltype(X), typeof(domains_vec[1].lower), typeof(domains_vec[1].upper))
+    T = float(base_type)
+    T <: AbstractFloat || return nothing
+    k = covfunc(pv)
+    ℓ_val = _extract_lengthscale(k.lengthscales)
+    ℓ_val isa Number || return nothing
+    lowers, uppers = _interval_bounds_matrices(domains_vec, T)
+    points = reshape(T.(X), :, 1)
+    anti = radial_antiderivative(k, Val(1))
+    ℓT = T(ℓ_val)
+    signed_map = let anti = anti, ℓT = ℓT, zero_T = zero(T), one_T = one(T)
+        (r2, s) -> begin
+            τ = sqrt(max(r2, zero_T))
+            s_eff = iszero(s) ? one_T : s
+            return s_eff * ℓT * anti(τ)
+        end
+    end
+    scales = T[inv(ℓT)]
+    upper_matrix = SignedStationaryKernelMatrix(uppers, points, signed_map; scales = scales)
+    lower_matrix = SignedStationaryKernelMatrix(lowers, points, signed_map; scales = scales)
+    return upper_matrix - lower_matrix
+end
+
+"""
+    _lazy_radial_integral_integral_matrix(k, domains1, domains2)
+
+Assemble the two-sided radial integral matrix as a lazy combination of
+stationary blocks. Returns `nothing` when the fast path is not applicable.
+"""
+function _lazy_radial_integral_integral_matrix(k, domains1, domains2)
+    (isempty(domains1) || isempty(domains2)) && return nothing
+    base_type = promote_type(
+        typeof(domains1[1].lower),
+        typeof(domains1[1].upper),
+        typeof(domains2[1].lower),
+        typeof(domains2[1].upper),
+    )
+    T = float(base_type)
+    T <: AbstractFloat || return nothing
+    ℓ_val = _extract_lengthscale(k.lengthscales)
+    ℓ_val isa Number || return nothing
+    lowers1, uppers1 = _interval_bounds_matrices(domains1, T)
+    lowers2, uppers2 = _interval_bounds_matrices(domains2, T)
+    anti = radial_antiderivative(k, Val(2))
+    ℓT = T(ℓ_val)
+    radial_map = let anti = anti, ℓ2 = ℓT^2, zero_T = zero(T)
+        r2 -> begin
+            τ = sqrt(max(r2, zero_T))
+            return ℓ2 * anti(τ)
+        end
+    end
+    scales = T[inv(ℓT)]
+    term_bc = StationaryKernelMatrix(uppers1, lowers2, radial_map; scales = scales)
+    term_ac = -1.0 * StationaryKernelMatrix(lowers1, lowers2, radial_map; scales = scales)
+    term_bd = -1.0 * StationaryKernelMatrix(uppers1, uppers2, radial_map; scales = scales)
+    term_ad = StationaryKernelMatrix(lowers1, uppers2, radial_map; scales = scales)
+    return ApplyArray(+, term_bc, term_ac, term_bd, term_ad)
+    #return ((term_bc - term_ac) - term_bd) + term_ad
+end
+
 # TODO: Test me later, e.g. for the Matern
 function kernelmatrix(
         pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral,
@@ -59,7 +157,7 @@ function kernelmatrix(
 
     eval_fn =
         (a, b, x) ->
-    radial_covfunc_one_sided_integral(a, b, x; anti_derivative = anti, ℓ = ℓ)
+    radial_covfunc_one_sided_integral(a, b, x; anti_derivative = anti, ℓ = only(ℓ))
     res = eval_fn.(lower_bounds, upper_bounds, X)
     res = reshape(res, randvar_length(pv), :)
     if randvar_arg(pv) == 2
@@ -100,7 +198,7 @@ function integrate_radial(
                 lj,
                 uj;
                 anti_derivative = anti,
-                ℓ = ℓ,
+                ℓ = only(ℓ),
             )
         end
     end

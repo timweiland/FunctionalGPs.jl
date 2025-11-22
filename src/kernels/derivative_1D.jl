@@ -32,10 +32,7 @@ function derivative(k::DerivativeKernel1D{N1, M1}, N2::Int, M2::Int) where {N1, 
     if N2 == 0 && M2 == 0
         return k
     end
-    return DerivativeKernel1D{N1 + N2, M1 + M2}(
-        k.original_kernel,
-        derivative(k.derivative_kernel, N2, M2).derivative_kernel,
-    )
+    return derivative(k.original_kernel, N1 + N2, M1 + M2)
 end
 
 function Base.:(==)(k1::DerivativeKernel1D, k2::DerivativeKernel1D)
@@ -46,4 +43,12 @@ end
 function Base.isapprox(k1::DerivativeKernel1D, k2::DerivativeKernel1D)
     return k1.original_kernel ≈ k2.original_kernel &&
         k1.derivative_kernel ≈ k2.derivative_kernel
+end
+
+function kernel_evaluate_evaluate(k::DerivativeKernel1D, X)
+    return kernel_evaluate_evaluate(k.derivative_kernel, X)
+end
+
+function kernel_evaluate_evaluate(k::DerivativeKernel1D, X1, X2)
+    return kernel_evaluate_evaluate(k.derivative_kernel, X1, X2)
 end

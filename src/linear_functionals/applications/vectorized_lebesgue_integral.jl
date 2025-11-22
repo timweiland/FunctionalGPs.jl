@@ -93,6 +93,10 @@ end
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
         pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral
     ) where {T}
+    lazy = _lazy_radial_integral_integral_matrix(pv.covfunc, ℒ.domains, pv.domains)
+    if lazy !== nothing
+        return lazy
+    end
     if ℒ.domains === pv.domains
         return integrate_radial(pv.covfunc, pv.domains)
     end

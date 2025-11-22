@@ -12,16 +12,16 @@ end
 ########### PV Crosscovs ###########
 function (op::EvaluationFunctional)(pv::EvaluationPVCrosscov{1})
     if pv.linfunc === op
-        return kernelmatrix(pv.k, pv.linfunc.X)
+        return kernel_evaluate_evaluate(pv.k, pv.linfunc.X)
     end
-    return kernelmatrix(pv.k, pv.linfunc.X, op.X)
+    return kernel_evaluate_evaluate(pv.k, pv.linfunc.X, op.X)
 end
 
 function (op::EvaluationFunctional)(pv::EvaluationPVCrosscov{2})
     if pv.linfunc === op
-        return kernelmatrix(pv.k, pv.linfunc.X)
+        return kernel_evaluate_evaluate(pv.k, op.X)
     end
-    return kernelmatrix(pv.k, op.X, pv.linfunc.X)
+    return kernel_evaluate_evaluate(pv.k, op.X, pv.linfunc.X)
 end
 
 function (op::EvaluationFunctional)(pv::TensorProductCrosscov)
@@ -55,5 +55,9 @@ end
 function (ℒ::EvaluationFunctional)(
         pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral,
     )
+    lazy = _lazy_radial_integral_evaluation_matrix(pv, ℒ.X)
+    if lazy !== nothing
+        return randvar_arg(pv) == 2 ? lazy' : lazy
+    end
     return kernelmatrix(pv, ℒ.X)
 end

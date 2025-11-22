@@ -1,3 +1,5 @@
+include("covariance_traits.jl")
+include("stationary.jl")
 include("derivative_1D.jl")
 include("compact.jl")
 include("radial.jl")

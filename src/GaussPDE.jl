@@ -13,6 +13,8 @@ include("domains/interval.jl")
 include("domains/box.jl")
 include("domains/factorized_box.jl")
 
+include("covariance_matrices/covariance_matrices.jl")
+
 include("kernels/kernels.jl")
 
 
@@ -50,5 +52,7 @@ include("randprocs/linfctl_transformed_gp.jl")
 
 include("problems/ibvp.jl")
 include("problems/heat.jl")
+
+include("hyperopt/hyperopt.jl")
 
 end
