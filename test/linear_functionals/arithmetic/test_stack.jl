@@ -262,8 +262,9 @@ import LinearAlgebra: eigvals
         @test result[(length(X2)+1):end, 1:length(X1)] ≈ block_21
         @test result[(length(X2)+1):end, (length(X1)+1):end] ≈ block_22
 
-        # This should be symmetric due to kernel symmetry
-        @test result ≈ result'
+        # Verify dimensions (non-square matrix)
+        @test size(result, 1) == length(X2) + length(domains2)
+        @test size(result, 2) == length(X1) + length(domains1)
     end
 
     @testset "Non-square block matrix (arg=2 application)" begin
