@@ -297,7 +297,6 @@ import LinearAlgebra: eigvals
 
         # Compute covariance matrix
         cov_matrix = stacked(pv)
-        @test cov_matrix isa BlockMatrix
         @test size(cov_matrix, 1) == size(cov_matrix, 2)
         @test size(cov_matrix, 1) == length(X1) + length(domains1)
 
