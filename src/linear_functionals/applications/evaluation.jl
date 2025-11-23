@@ -53,11 +53,8 @@ function (op::EvaluationFunctional)(pv::TensorProductCrosscov)
 end
 
 function (ℒ::EvaluationFunctional)(
-        pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral,
+        pv::IntegralPVCrosscov,
     )
-    lazy = _lazy_radial_integral_evaluation_matrix(pv, ℒ.X)
-    if lazy !== nothing
-        return randvar_arg(pv) == 2 ? lazy' : lazy
-    end
-    return kernelmatrix(pv, ℒ.X)
+    result = kernel_integrate_evaluate(pv.k, pv.domains, ℒ.X)
+    return randvar_arg(pv) == 2 ? result' : result
 end

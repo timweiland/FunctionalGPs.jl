@@ -1,14 +1,10 @@
 using Polynomials
 import KernelFunctions
 import Distances
-import KernelFunctions: kernelmatrix, ColVecs, RowVecs
-import NearestNeighbors: BallTree, inrange, NNTree
-import SparseArrays.sparse
 
 export AbstractCompactKernel,
     AbstractCompactRadialKernel, AbstractCompactSignedRadialKernel
 export CompactPolynomialKernel, CompactSignedPolynomialKernel
-export derivative
 
 """
     abstract type AbstractCompactKernel{X<:Number} <: KernelFunctions.Kernel
@@ -36,42 +32,6 @@ function (k::AbstractCompactKernel)(x, y)
     r = Distances.euclidean(x ./ lengthscales(k), y ./ lengthscales(k))
     return r <= 1 ? k_support(k, x, y) : 0.0
 end
-
-SearchTree(x::AbstractVector, metric::Distances.UnionMetrics) = BallTree(x, metric)
-SearchTree(x::RowVecs, metric::Distances.UnionMetrics) = BallTree(x.X', metric)
-SearchTree(x::ColVecs, metric::Distances.UnionMetrics) = BallTree(x.X, metric)
-function SearchTree(
-        x::AbstractVector{T},
-        metric::Distances.UnionMetrics,
-    ) where {T <: Number}
-    # Ensure a 1×N floating matrix for BallTree while preserving values
-    return BallTree(reshape(float.(collect(x)), 1, :), metric)
-end
-function inrange_point(tree::NNTree, point::T, radius::Number) where {T <: Number}
-    return inrange(tree, [point], radius)
-end
-inrange_point(tree::NNTree, point, radius::Number) = inrange(tree, point, radius)
-
-function kernelmatrix(k::AbstractCompactKernel, x::AbstractVector, y::AbstractVector)
-    ls = lengthscales(k)
-    max_dist = ls isa Number ? ls : maximum(ls)
-    y_tree = SearchTree(y, Distances.euclidean)
-    I, J = [], []
-    V::Vector{Float64} = []
-    for i in eachindex(x)
-        neighbors = inrange_point(y_tree, x[i], max_dist + 0.001)
-        for j in neighbors
-            val = k(x[i], y[j])
-            if val != 0.0
-                push!(I, i)
-                push!(J, j)
-                push!(V, val)
-            end
-        end
-    end
-    return sparse(I, J, V, Base.length(x), Base.length(y))
-end
-kernelmatrix(k::AbstractCompactKernel, x::AbstractVector) = kernelmatrix(k, x, x)
 
 """
     abstract type AbstractCompactRadialKernel{X<:Number} <: AbstractCompactKernel{X}
@@ -134,6 +94,7 @@ function CompactPolynomialKernel(poly::Polynomial{T}) where {T <: Number}
 end
 lengthscales(k::CompactPolynomialKernel) = k.lengthscales
 k_r(k::CompactPolynomialKernel, r::Number) = k.poly(r)
+kernel_structure(::CompactPolynomialKernel) = StationaryKernelTrait()
 
 function Base.:(==)(k1::CompactPolynomialKernel, k2::CompactPolynomialKernel)
     return k1.poly == k2.poly && k1.lengthscales == k2.lengthscales
@@ -174,57 +135,4 @@ function Base.isapprox(
         k2::CompactSignedPolynomialKernel,
     )
     return k1.poly ≈ k2.poly && k1.lengthscales ≈ k2.lengthscales
-end
-
-"""
-    derivative(k::CompactPolynomialKernel, n::Int, m::Int)
-
-Compute the derivative of a CompactPolynomialKernel.
-
-# Arguments
-- `k::CompactPolynomialKernel`: The CompactPolynomialKernel object.
-- `n::Int`: Order along the first argument.
-- `m::Int`: Order along the second argument.
-
-# Returns
-- `CompactPolynomialKernel` or `CompactSignedPolynomialKernel`: The derivative of the
-CompactPolynomialKernel object.
-
-"""
-function derivative(k::CompactPolynomialKernel, n::Int, m::Int)
-    if n == 0 && m == 0
-        return k
-    end
-    total = n + m
-    poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
-    inner_kernel =
-        iseven(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
-        CompactSignedPolynomialKernel(poly, k.lengthscales)
-    return DerivativeKernel1D{n, m}(k, inner_kernel)
-end
-
-function derivative(k::CompactSignedPolynomialKernel, n::Int, m::Int)
-    if n == 0 && m == 0
-        return k
-    end
-    total = n + m
-    poly = (-1)^m * Polynomials.derivative(k.poly, n + m) / (k.lengthscales^total)
-    inner_kernel =
-        isodd(total) ? CompactPolynomialKernel(poly, k.lengthscales) :
-        CompactSignedPolynomialKernel(poly, k.lengthscales)
-    return DerivativeKernel1D{n, m}(k, inner_kernel)
-end
-
-function radial_antiderivative(k::CompactPolynomialKernel, ::Val{1})
-    poly_int = Polynomials.integrate(k.poly)
-    return (r) -> poly_int(min(r, 1.0))
-end
-
-function radial_antiderivative(k::CompactPolynomialKernel, ::Val{2})
-    poly_int = Polynomials.integrate(k.poly)
-    poly_int2 = Polynomials.integrate(poly_int)
-    poly_int2_norm = poly_int2 - poly_int2.coeffs[1]
-    return (r) -> (
-        r > 1.0 ? poly_int2_norm(1.0) + (r - 1.0) * poly_int(1.0) : poly_int2_norm(r)
-    )
 end

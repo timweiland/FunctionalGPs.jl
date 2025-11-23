@@ -1,4 +1,5 @@
 using KernelFunctions
+import KernelFunctions: KernelSum
 
 ########### Kernels ###########
 function (op::PartialDerivative{1, M})(k::KernelTensorProduct; kwargs...) where {M}
@@ -9,6 +10,14 @@ function (op::PartialDerivative{1, M})(k::KernelTensorProduct; kwargs...) where 
         ks[i] = pd(k.kernels[i]; kwargs...)
     end
     return KernelTensorProduct(ks)
+end
+
+function (op::PartialDerivative{N, M})(k::KernelSum; kwargs...) where {N, M}
+    return KernelSum(map(kernel -> op(kernel; kwargs...), k.kernels))
+end
+
+function (op::PartialDerivative{1, 1})(k::KernelSum; kwargs...)
+    return KernelSum(map(kernel -> op(kernel; kwargs...), k.kernels))
 end
 
 function (op::PartialDerivative{1, 1})(

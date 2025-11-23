@@ -2,6 +2,34 @@ using KernelFunctions: Kernel
 
 export EvaluationPVCrosscov
 
+"""
+    EvaluationPVCrosscov{EvalArg, TK, TL}
+
+PV crosscov representing point evaluation applied to one argument of a kernel.
+This is the generic type used for evaluation functionals.
+
+The `EvalArg` type parameter (1 or 2) indicates which kernel argument the
+evaluation is applied to.
+
+# Fields
+- `eval_arg::Int`: Which argument (1 or 2) the evaluation is applied to
+- `k::TK`: The kernel
+- `linfunc::TL`: The evaluation functional containing the points
+
+# Examples
+```julia
+julia> k = HalfIntegerMaternKernel(2, [1.0]);
+julia> X = [0.0, 0.5, 1.0];
+julia> ℒ = EvaluationFunctional(X);
+julia> pv = ℒ(k, arg=1);  # Evaluate first argument
+julia> typeof(pv)
+EvaluationPVCrosscov{1, ...}
+```
+
+# See also
+- [`IntegralPVCrosscov`](@ref): For integration functionals
+- [`kernel_evaluate_evaluate`](@ref): For building covariance matrices
+"""
 struct EvaluationPVCrosscov{EvalArg, TK <: Kernel, TL} <: ProcessVectorCrossCovariance
     eval_arg::Int
     k::TK

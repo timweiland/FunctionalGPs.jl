@@ -7,10 +7,10 @@ using GaussPDE
         ℒ = VectorizedLebesgueIntegral(domains)
         ℒw = ℒ(w, arg = 1)
         wℒ = ℒ(w)
-        @test ℒw isa CompactPolynomialCovFunc1D_Identity_LebesgueIntegral
-        @test wℒ isa CompactPolynomialCovFunc1D_Identity_LebesgueIntegral
-        @test ℒw.randvar_arg == 1
-        @test wℒ.randvar_arg == 2
+        @test ℒw isa IntegralPVCrosscov
+        @test wℒ isa IntegralPVCrosscov
+        @test ℒw.integral_arg == 1
+        @test wℒ.integral_arg == 2
     end
 
     @testset "Two-sided application" begin
@@ -20,6 +20,6 @@ using GaussPDE
         ℒ1 = VectorizedLebesgueIntegral(domains)
         ℒ2 = VectorizedLebesgueIntegral(domains2)
         K = ℒ1(ℒ2(w))
-        @test K ≈ GaussPDE.integrate(w, domains, domains2)
+        @test K ≈ kernel_integrate_integrate(w, domains, domains2)
     end
 end

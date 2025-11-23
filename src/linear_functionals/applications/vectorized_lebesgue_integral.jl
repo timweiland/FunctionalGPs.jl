@@ -2,18 +2,12 @@ import KernelFunctions: KernelTensorProduct
 using Kronecker
 
 ########### Kernels ###########
+# Generic construction - works for any kernel with 1D interval domains
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-        k::CompactPolynomialKernel;
+        k::Kernel;
         arg = 2,
     ) where {T}
-    return CompactPolynomialCovFunc1D_Identity_LebesgueIntegral(k, ℒ.domains, arg)
-end
-
-function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-        k::HalfIntegerMaternKernel;
-        arg = 2,
-    ) where {T}
-    return Matern1D_Identity_LebesgueIntegral(k, ℒ.domains, arg)
+    return IntegralPVCrosscov(k, ℒ.domains, arg)
 end
 
 function cancel_integral(
@@ -84,23 +78,14 @@ end
 
 
 ########### PV Crosscovs ###########
+# Generic application - dispatches to kernel_integrate_integrate
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-        pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
+        pv::IntegralPVCrosscov,
     ) where {T}
-    return integrate(pv.covfunc, ℒ.domains, pv.domains)
-end
-
-function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-        pv::RadialCovarianceFunction1D_Identity_LebesgueIntegral
-    ) where {T}
-    lazy = _lazy_radial_integral_integral_matrix(pv.covfunc, ℒ.domains, pv.domains)
-    if lazy !== nothing
-        return lazy
-    end
     if ℒ.domains === pv.domains
-        return integrate_radial(pv.covfunc, pv.domains)
+        return kernel_integrate_integrate(pv.k, pv.domains)
     end
-    return integrate_radial(pv.covfunc, ℒ.domains, pv.domains)
+    return kernel_integrate_integrate(pv.k, ℒ.domains, pv.domains)
 end
 
 function box_integrals(pv::TensorProductCrosscov, domains::FactorizedBoxDomains)
@@ -122,9 +107,9 @@ function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
 end
 
 function (op::PartialDerivative{1, 1})(
-        pv::CompactPolynomialCovFunc1D_Identity_LebesgueIntegral,
+        pv::IntegralPVCrosscov,
     )
-    k = pv.covfunc
+    k = pv.k
     dk = op(k; arg = randproc_arg(pv))
     ℒ = VectorizedLebesgueIntegral(pv.domains)
     return ℒ(dk; arg = randvar_arg(pv))
