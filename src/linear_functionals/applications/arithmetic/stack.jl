@@ -39,19 +39,18 @@ the stacked functional from both sides of a kernel.
 function (stacked::StackedLinearFunctional)(pv::StackedPVCrosscov)
     # Apply each functional to each component of the stacked PV crosscov
     # This creates a matrix of blocks
-    blocks = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
+    #
+    # When randvar_arg(pv) == 1, the blocks are transposed due to how
+    # kernel_evaluate_evaluate is implemented, so we need to transpose them back
+    if randvar_arg(pv) == 1
+        blocks = [f(pv_component)' for f in stacked.functionals, pv_component in pv.pv_crosscovs]
+    else
+        blocks = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
+    end
 
     # Convert to block matrix
-    # The orientation depends on which argument the PV crosscov was applied to
-    if randproc_arg(pv) == 1
-        # When applied to arg=1, we're building columns
-        # Each row in 'blocks' becomes a row in the block matrix
-        return mortar(Tuple(Tuple(blocks[i, :]) for i in 1:size(blocks, 1))...)
-    else
-        # When applied to arg=2, we're building rows
-        # Each column in 'blocks' becomes a column in the block matrix
-        return mortar(Tuple(Tuple(blocks[:, j]) for j in 1:size(blocks, 2))...)
-    end
+    # Each row in 'blocks' becomes a row in the block matrix
+    return mortar(Tuple(Tuple(blocks[i, :]) for i in 1:size(blocks, 1))...)
 end
 
 """
@@ -86,12 +85,14 @@ function (stacked::StackedLinearFunctional)(pv::ConstantScaledPVCrosscov)
 end
 
 # Support for kernel types
-function (stacked::StackedLinearFunctional)(k::KernelSum, args...; kwargs...)
+function (stacked::StackedLinearFunctional)(k::KernelSum; arg::Integer = 2)
     # Linearity: distribute over sum
-    return mapreduce((kern) -> stacked(kern, args...; kwargs...), +, k.kernels)
+    return mapreduce((kern) -> stacked(kern; arg=arg), +, k.kernels)
 end
 
-function (stacked::StackedLinearFunctional)(k::ScaledKernel, args...; kwargs...)
-    # Linearity: factor out scalar
-    return k.σ² * stacked(k.kernel, args...; kwargs...)
+function (stacked::StackedLinearFunctional)(k::ScaledKernel; arg::Integer = 2)
+    # Apply to the underlying kernel - each individual functional will see the ScaledKernel
+    # and handle it appropriately, ensuring the scalar is applied at the right level
+    pv_crosscovs = [f(k; arg=arg) for f in stacked.functionals]
+    return StackedPVCrosscov(pv_crosscovs)
 end
