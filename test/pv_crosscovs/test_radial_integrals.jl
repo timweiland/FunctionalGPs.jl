@@ -1,5 +1,3 @@
-using Test
-
 @testset "Integral-evaluation cross-covariance" begin
     k = HalfIntegerMaternKernel(2, [1.3])
     domains = [Interval(0.0, 0.4), Interval(0.4, 0.9)]
