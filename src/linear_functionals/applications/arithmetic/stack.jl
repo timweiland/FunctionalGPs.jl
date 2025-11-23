@@ -39,13 +39,28 @@ the stacked functional from both sides of a kernel.
 function (stacked::StackedLinearFunctional)(pv::StackedPVCrosscov)
     # Apply each functional to each component of the stacked PV crosscov
     # This creates a matrix of blocks
-    #
-    # When randvar_arg(pv) == 1, the blocks are transposed due to how
-    # kernel_evaluate_evaluate is implemented, so we need to transpose them back
-    if randvar_arg(pv) == 1
-        blocks = [f(pv_component)' for f in stacked.functionals, pv_component in pv.pv_crosscovs]
-    else
-        blocks = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
+    blocks_raw = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
+
+    # Ensure each block has the correct orientation
+    # Block (i,j) should have rows corresponding to functional i's output size
+    # and columns corresponding to the pv_component j's batch size
+    blocks = Matrix{AbstractMatrix}(undef, size(blocks_raw))
+    for i in 1:size(blocks_raw, 1)
+        row_size = prod(output_shape(stacked[i]))
+        for j in 1:size(blocks_raw, 2)
+            # The column size comes from the pv component's randvar batch size
+            col_size = prod(randvar_batch_size(pv.pv_crosscovs[j]))
+            current_size = size(blocks_raw[i, j])
+
+            # Check if we need to transpose to get the right orientation
+            if current_size == (row_size, col_size)
+                blocks[i, j] = blocks_raw[i, j]
+            elseif current_size == (col_size, row_size)
+                blocks[i, j] = blocks_raw[i, j]'
+            else
+                error("Unexpected block size at position ($i, $j): got $current_size, expected ($row_size, $col_size) or ($col_size, $row_size)")
+            end
+        end
     end
 
     # Convert to block matrix
