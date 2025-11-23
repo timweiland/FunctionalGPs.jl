@@ -1,6 +1,5 @@
 using ForwardDiff
 using ToeplitzMatrices: SymmetricToeplitz
-using Test
 
 function _autodiff_matern_derivative(k, x, y, n, m)
     if n == 0 && m == 0

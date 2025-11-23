@@ -1,5 +1,4 @@
 import AbstractGPs: FiniteGP, AbstractGP, MeanFunction
-import Statistics: mean, cov
 import Random: AbstractRNG
 using Memoize
 using LinearAlgebra

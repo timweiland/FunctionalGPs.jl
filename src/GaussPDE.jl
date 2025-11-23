@@ -51,6 +51,6 @@ include("randprocs/linfctl_transformed_gp.jl")
 include("problems/ibvp.jl")
 include("problems/heat.jl")
 
-include("hyperopt/hyperopt.jl")
+# include("hyperopt/hyperopt.jl")
 
 end
