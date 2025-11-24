@@ -39,33 +39,51 @@ the stacked functional from both sides of a kernel.
 function (stacked::StackedLinearFunctional)(pv::StackedPVCrosscov)
     # Apply each functional to each component of the stacked PV crosscov
     # This creates a matrix of blocks
-    blocks_raw = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
-
-    # Ensure each block has the correct orientation
-    # Block (i,j) should have rows corresponding to functional i's output size
-    # and columns corresponding to the pv_component j's batch size
-    blocks = Matrix{AbstractMatrix}(undef, size(blocks_raw))
-    for i in 1:size(blocks_raw, 1)
-        row_size = prod(output_shape(stacked[i]))
-        for j in 1:size(blocks_raw, 2)
-            # The column size comes from the pv component's randvar batch size
-            col_size = prod(randvar_batch_size(pv.pv_crosscovs[j]))
-            current_size = size(blocks_raw[i, j])
-
-            # Check if we need to transpose to get the right orientation
-            if current_size == (row_size, col_size)
-                blocks[i, j] = blocks_raw[i, j]
-            elseif current_size == (col_size, row_size)
-                blocks[i, j] = blocks_raw[i, j]'
-            else
-                error("Unexpected block size at position ($i, $j): got $current_size, expected ($row_size, $col_size) or ($col_size, $row_size)")
-            end
-        end
-    end
+    blocks = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
 
     # Convert to block matrix
-    # Each row in 'blocks' becomes a row in the block matrix
-    return mortar(Tuple(Tuple(blocks[i, :]) for i in 1:size(blocks, 1))...)
+    # The orientation depends on which argument the PV crosscov was applied to
+    if randproc_arg(pv) == 1
+        # When applied to arg=1, we're building rows
+        # Each row in 'blocks' becomes a row in the block matrix
+        return mortar(Tuple(Tuple(blocks[i, :]) for i in 1:size(blocks, 1))...)
+    else
+        # When applied to arg=2, we're building columns
+        # Each column in 'blocks' becomes a column in the block matrix
+        return mortar(Tuple(Tuple(blocks[:, j]) for j in 1:size(blocks, 2))...)
+    end
+end
+
+"""
+    (stacked::StackedLinearFunctional)(pv::ProcessVectorCrossCovariance)
+
+Apply a stacked linear functional to a single (non-stacked) ProcessVectorCrossCovariance.
+This creates a block vector where each block corresponds to applying one of the functionals
+to the given PV.
+
+# Arguments
+- `pv::ProcessVectorCrossCovariance`: A single PV cross-covariance
+
+# Returns
+- A block matrix with one column, where row i contains the result of applying functional i to pv
+"""
+function (stacked::StackedLinearFunctional)(pv::ProcessVectorCrossCovariance)
+    # Apply each functional to the single PV crosscov
+    # This creates a vector of blocks
+    # Note: We transpose each block because functional application returns transposed results
+    blocks = [f(pv)' for f in stacked.functionals]
+
+    # Convert to block matrix
+    # The orientation depends on which argument the PV crosscov was applied to
+    if randproc_arg(pv) == 1
+        # When randproc_arg==1, we're building rows
+        # All blocks go in a single row
+        return mortar((tuple(blocks...),)...)
+    else
+        # When randproc_arg==2, we're building columns
+        # Each block becomes a row in the block matrix
+        return mortar(Tuple(Tuple([block]) for block in blocks)...)
+    end
 end
 
 """
@@ -83,11 +101,18 @@ function (stacked::StackedLinearFunctional)(m::ZeroMean{T}) where {T}
     return vcat(results...)
 end
 
-# Support for other PV crosscov types
+# Specific methods to resolve ambiguity with AbstractLinearFunctional methods
 function (stacked::StackedLinearFunctional)(pv::EvaluationPVCrosscov)
-    # Apply to kernel from the other side, then kernelmatrix
-    return kernelmatrix(stacked(pv.k, arg = randproc_arg(pv)), pv.linfunc.X)
+    # Delegate to the generic ProcessVectorCrossCovariance method
+    return invoke(stacked, Tuple{ProcessVectorCrossCovariance}, pv)
 end
+
+function (stacked::StackedLinearFunctional)(pv::IntegralPVCrosscov)
+    # Delegate to the generic ProcessVectorCrossCovariance method
+    return invoke(stacked, Tuple{ProcessVectorCrossCovariance}, pv)
+end
+
+# Support for other PV crosscov types
 
 function (stacked::StackedLinearFunctional)(pv::AbstractSumPVCrosscov)
     # Linearity: distribute over sum
