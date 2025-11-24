@@ -39,18 +39,45 @@ the stacked functional from both sides of a kernel.
 function (stacked::StackedLinearFunctional)(pv::StackedPVCrosscov)
     # Apply each functional to each component of the stacked PV crosscov
     # This creates a matrix of blocks
-    blocks = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
+    blocks_raw = [f(pv_component) for f in stacked.functionals, pv_component in pv.pv_crosscovs]
 
-    # Convert to block matrix
+    # Transpose blocks if needed based on the arg attribute
     # The orientation depends on which argument the PV crosscov was applied to
     if randproc_arg(pv) == 1
-        # When applied to arg=1, we're building rows
-        # Each row in 'blocks' becomes a row in the block matrix
+        # Building row-wise: blocks in same row must have same number of rows
+        # Each block should have rows = functional output size
+        blocks = Matrix{AbstractMatrix}(undef, size(blocks_raw))
+        for i in 1:size(blocks_raw, 1)
+            expected_rows = prod(output_shape(stacked[i]))
+            for j in 1:size(blocks_raw, 2)
+                current_size = size(blocks_raw[i, j])
+                # If rows don't match expected, try transpose
+                if current_size[1] != expected_rows && current_size[2] == expected_rows
+                    blocks[i, j] = blocks_raw[i, j]'
+                else
+                    blocks[i, j] = blocks_raw[i, j]
+                end
+            end
+        end
         return mortar(Tuple(Tuple(blocks[i, :]) for i in 1:size(blocks, 1))...)
     else
-        # When applied to arg=2, we're building columns
-        # Each column in 'blocks' becomes a column in the block matrix
-        return mortar(Tuple(Tuple(blocks[:, j]) for j in 1:size(blocks, 2))...)
+        # Building column-wise: blocks in same column must have same number of columns
+        # Each block should have columns = pv component batch size
+        blocks = Matrix{AbstractMatrix}(undef, size(blocks_raw))
+        for j in 1:size(blocks_raw, 2)
+            expected_cols = prod(randvar_batch_size(pv.pv_crosscovs[j]))
+            for i in 1:size(blocks_raw, 1)
+                current_size = size(blocks_raw[i, j])
+                # If cols don't match expected, try transpose
+                if current_size[2] != expected_cols && current_size[1] == expected_cols
+                    blocks[i, j] = blocks_raw[i, j]'
+                else
+                    blocks[i, j] = blocks_raw[i, j]
+                end
+            end
+        end
+        # mortar takes rows, so always use row-wise construction
+        return mortar(Tuple(Tuple(blocks[i, :]) for i in 1:size(blocks, 1))...)
     end
 end
 
