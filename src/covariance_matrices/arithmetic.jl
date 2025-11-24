@@ -21,7 +21,7 @@ function Base.:-(A::CovarianceMatrix{T}, B::CovarianceMatrix) where {T}
         return zero(T) * A
     end
     size(A) == size(B) || throw(DimensionMismatch("covariance matrices must have matching sizes"))
-    return ApplyArray(+, A, -B)
+    return ApplyArray(+, A, B * (-1))
 end
 
 """
