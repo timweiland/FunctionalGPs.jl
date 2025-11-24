@@ -78,6 +78,12 @@ end
 
 
 ########### PV Crosscovs ###########
+# Application to EvaluationPVCrosscov
+function (ℒ::VectorizedLebesgueIntegral)(pv::EvaluationPVCrosscov)
+    # Create IntegralPVCrosscov by applying ℒ to the kernel, then evaluate at the points
+    return kernelmatrix(ℒ(pv.k, arg = randproc_arg(pv)), pv.linfunc.X)
+end
+
 # Generic application - dispatches to kernel_integrate_integrate
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
         pv::IntegralPVCrosscov,

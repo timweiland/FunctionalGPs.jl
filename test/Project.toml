@@ -1,6 +1,7 @@
 [deps]
 AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
@@ -18,6 +19,7 @@ ToeplitzMatrices = "c751599d-da0a-543b-9d20-d0a503d91d24"
 [compat]
 AbstractGPs = "0.5"
 Aqua = "0.8"
+BlockArrays = "0.16"
 Distributions = "0.25"
 FiniteDifferences = "0.12"
 KernelFunctions = "0.10"

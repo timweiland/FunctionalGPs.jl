@@ -66,3 +66,15 @@ end
 function Base.isapprox(pv1::IntegralPVCrosscov, pv2::IntegralPVCrosscov)
     return pv1.k ≈ pv2.k && pv1.domains ≈ pv2.domains && pv1.integral_arg == pv2.integral_arg
 end
+
+# kernelmatrix methods
+function kernelmatrix(pv::IntegralPVCrosscov{1}, X::AbstractVector)
+    # Integral on first argument, evaluate on second argument
+    return kernel_integrate_evaluate(pv.k, pv.domains, X)
+end
+
+function kernelmatrix(pv::IntegralPVCrosscov{2}, X::AbstractVector)
+    # Integral on second argument, evaluate on first argument
+    result = kernel_integrate_evaluate(pv.k, pv.domains, X)
+    return result'
+end
