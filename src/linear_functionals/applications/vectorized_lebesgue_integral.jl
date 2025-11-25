@@ -32,22 +32,39 @@ function cancel_integral(
     end
 end
 
+# Main entry point - delegates to trait-based helper
 function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
         k::DerivativeKernel1D{N, M};
         arg = 2,
     ) where {T, N, M}
-    if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
-        error("Not implemented")
-    end
-    return cancel_integral(k, ℒ; arg = arg)
+    return _apply_integral_to_derivative_kernel(
+        kernel_structure(k.original_kernel), k, ℒ; arg = arg
+    )
 end
 
-function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
-        k::DerivativeKernel1D{N, M, <:AbstractCompactRadialKernel};
+# Stationary kernels: can always cancel, even for "wrong argument" case
+# This exploits the property ∂k/∂x = -∂k/∂y for stationary kernels k(x,y) = φ(x-y)
+function _apply_integral_to_derivative_kernel(
+        ::StationaryKernelTrait,
+        k::DerivativeKernel1D{N, M},
+        ℒ::VectorizedLebesgueIntegral{Interval{T}};
         arg = 2,
     ) where {T, N, M}
     if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
         return -cancel_integral(k, ℒ; arg = arg, same_arg = false)
+    end
+    return cancel_integral(k, ℒ; arg = arg)
+end
+
+# Non-stationary kernels: error for "wrong argument" case
+function _apply_integral_to_derivative_kernel(
+        ::KernelStructureTrait,
+        k::DerivativeKernel1D{N, M},
+        ℒ::VectorizedLebesgueIntegral{Interval{T}};
+        arg = 2,
+    ) where {T, N, M}
+    if ((N == 0) && (arg == 1)) || ((M == 0) && (arg == 2))
+        error("Integration of derivative kernel on non-matching argument not implemented for non-stationary kernels")
     end
     return cancel_integral(k, ℒ; arg = arg)
 end

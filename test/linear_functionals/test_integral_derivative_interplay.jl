@@ -66,3 +66,63 @@ end
         end
     end
 end
+
+@testset "Matérn Integral / Derivative interplay" begin
+    k = HalfIntegerMaternKernel(1, [0.6])  # Matérn 3/2
+    dx = PartialDerivative((1,))
+    intervals = intervals_from_endpoints(range(0, 3; step = 0.3))
+    ∫ = VectorizedLebesgueIntegral(intervals)
+    fv_op = ∫ ∘ dx
+
+    @testset "Standard FV operator" begin
+        @testset "One-sided" begin
+            X = range(0, 3; step = 0.25)
+
+            k_fv = fv_op(k)
+            K = kernelmatrix(k_fv, X)
+            @test size(K) == (length(X), length(intervals))
+            idcs = random_idcs(K, 10)
+            for (i, j) in idcs
+                @test K[i, j] ≈ covfunc_integral_one_sided_quad(
+                    dx(k),
+                    X[i],
+                    intervals[j].lower,
+                    intervals[j].upper,
+                ) rtol = 1.0e-3 atol = 1.0e-8
+            end
+        end
+
+        @testset "Two-sided" begin
+            K = fv_op(fv_op(k))
+            @test size(K) == (length(intervals), length(intervals))
+            idcs = random_idcs(K, 10)
+            for (i, j) in idcs
+                @test K[i, j] ≈ covfunc_integral_two_sided_quad(
+                    dx(dx(k), arg = 1),
+                    intervals[i].lower,
+                    intervals[i].upper,
+                    intervals[j].lower,
+                    intervals[j].upper,
+                ) rtol = 1.0e-3 atol = 1.0e-8
+            end
+        end
+    end
+
+    @testset "Crossplay between arguments" begin
+        dk = dx(k, arg = 1)
+        dk∫ = ∫(dk, arg = 2)
+
+        X = range(0, 3; step = 0.25)
+        K = kernelmatrix(dk∫, X)
+        @test size(K) == (length(X), length(intervals))
+        idcs = random_idcs(K, 10)
+        for (i, j) in idcs
+            @test K[i, j] ≈ covfunc_integral_one_sided_quad(
+                dk,
+                X[i],
+                intervals[j].lower,
+                intervals[j].upper,
+            ) rtol = 1.0e-3 atol = 1.0e-8
+        end
+    end
+end
