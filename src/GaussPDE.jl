@@ -31,6 +31,7 @@ include("linear_functionals/evaluation.jl")
 include("linear_functionals/arithmetic/concatenate.jl")
 include("linear_functionals/arithmetic/sum.jl")
 include("linear_functionals/arithmetic/stack.jl")
+include("linear_functionals/arithmetic/tensor_product.jl")
 include("linear_functionals/vectorized_lebesgue_integral.jl")
 
 include("pv_crosscovs/pv_crosscov.jl")
