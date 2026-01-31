@@ -1,3 +1,0 @@
-export AbstractLinearFunctionOperator
-
-abstract type AbstractLinearFunctionOperator end
