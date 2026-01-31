@@ -2,57 +2,33 @@ module GaussPDE
 
 using LinearAlgebra
 
+# === Utilities ===
 include("util/array_ops.jl")
-include("util/unified_cholesky.jl")
+include("util/cholesky.jl")
 include("util/kronecker.jl")
 
-include("factorized_grid.jl")
-
-include("domains/domain.jl")
-include("domains/interval.jl")
-include("domains/box.jl")
-include("domains/factorized_box.jl")
-
-include("covariance_matrices/covariance_matrices.jl")
-
+# === Layer 1: Building blocks ===
+include("domains/domains.jl")
 include("kernels/kernels.jl")
+include("operators/operators.jl")
+include("functionals/functionals.jl")
 
+# === Layer 2: Intermediate representation ===
+include("crosscov/crosscov.jl")
 
-include("linearfunctionoperators/linear_function_operator.jl")
-include("linearfunctionoperators/arithmetic/concatenate.jl")
-include("linearfunctionoperators/arithmetic/sum.jl")
-include("linearfunctionoperators/arithmetic/scale.jl")
-include("linearfunctionoperators/differential_operators/differential_operator.jl")
-include("linearfunctionoperators/differential_operators/partial_derivative.jl")
-include("linearfunctionoperators/differential_operators/linear_diffop.jl")
+# === Layer 3: Output matrices ===
+include("matrices/matrices.jl")
 
-include("linear_functionals/linear_functional.jl")
-include("linear_functionals/evaluation.jl")
-include("linear_functionals/arithmetic/concatenate.jl")
-include("linear_functionals/arithmetic/sum.jl")
-include("linear_functionals/arithmetic/stack.jl")
-include("linear_functionals/arithmetic/tensor_product.jl")
-include("linear_functionals/vectorized_lebesgue_integral.jl")
+# === Specializations (trait-dispatched implementations) ===
+include("specializations/specializations.jl")
 
-include("pv_crosscovs/pv_crosscov.jl")
-include("pv_crosscovs/evaluation.jl")
-include("pv_crosscovs/integral.jl")
-include("pv_crosscovs/stack.jl")
-include("pv_crosscovs/arithmetic/tensor_product.jl")
-include("pv_crosscovs/arithmetic/scale.jl")
-include("pv_crosscovs/arithmetic/sum.jl")
-include("pv_crosscovs/arithmetic/difference.jl")
+# === Composition (how layers connect) ===
+include("composition/composition.jl")
 
-include("linearfunctionoperators/applications/applications.jl")
-include("linear_functionals/applications/applications.jl")
+# === High-level APIs ===
+include("gps/gps.jl")
+include("problems/problems.jl")
 
-include("randprocs/linear_observation.jl")
-include("randprocs/linear_conditional_gp.jl")
-include("randprocs/linfctl_transformed_gp.jl")
-
-include("problems/ibvp.jl")
-include("problems/heat.jl")
-
-# include("hyperopt/hyperopt.jl")
+# include("hyperopt/hyperopt.jl")  # Still disabled
 
 end
