@@ -2,6 +2,6 @@ using TestEnv
 
 TestEnv.activate()
 
-include("test/GaussPDETests.jl")
+include("test/FunctionalGPsTests.jl")
 
-GaussPDETests.retest(ARGS[1])
+FunctionalGPsTests.retest(ARGS[1])

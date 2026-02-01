@@ -1,8 +1,8 @@
-using ReTest, GaussPDE
-include("GaussPDETests.jl")
+using ReTest, FunctionalGPs
+include("FunctionalGPsTests.jl")
 
 if "skip-aqua" in ARGS
-    GaussPDETests.retest(r"\b(?!Aqua\b)\w+")
+    FunctionalGPsTests.retest(r"\b(?!Aqua\b)\w+")
 else
-    GaussPDETests.retest()
+    FunctionalGPsTests.retest()
 end

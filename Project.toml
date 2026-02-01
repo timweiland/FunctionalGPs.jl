@@ -1,7 +1,7 @@
-name = "GaussPDE"
-uuid = "2199f16a-97f8-403e-8ac7-780e495e7dcb"
+name = "FunctionalGPs"
+uuid = "9c281965-9d98-4de5-9c8e-371bea37d9e9"
 authors = ["Tim Weiland <hello@timwei.land> and contributors"]
-version = "1.0.0-DEV"
+version = "0.1.0-DEV"
 
 [deps]
 AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"

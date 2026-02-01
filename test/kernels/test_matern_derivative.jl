@@ -18,15 +18,15 @@ end
     orders = [(1, 0), (0, 1), (2, 0), (1, 1), (3, 0)]
 
     for (n, m) in orders
-        D = GaussPDE.derivative(k, n, m)
+        D = FunctionalGPs.derivative(k, n, m)
         expected = _autodiff_matern_derivative(k, x, y, n, m)
         @test D(x, y) ≈ expected atol = 1.0e-9 rtol = 1.0e-7
     end
 
-    D_odd = GaussPDE.derivative(k, 1, 0)
+    D_odd = FunctionalGPs.derivative(k, 1, 0)
     @test D_odd(0.5, 0.5) == 0
 
-    D_even = GaussPDE.derivative(k, 2, 0)
+    D_even = FunctionalGPs.derivative(k, 2, 0)
     @test kernel_structure(D_even.derivative_kernel) isa StationaryKernelTrait
     grid = range(0.0, stop = 1.0, length = 6)
     mat = kernel_evaluate_evaluate(D_even.derivative_kernel, grid)

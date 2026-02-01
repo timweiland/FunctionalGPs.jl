@@ -1,5 +1,5 @@
-using GaussPDE
-import GaussPDE: randvar_batch_size
+using FunctionalGPs
+import FunctionalGPs: randvar_batch_size
 using AbstractGPs
 using KernelFunctions
 import KernelFunctions: kernelmatrix

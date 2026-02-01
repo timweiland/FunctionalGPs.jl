@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using Test
 using LinearAlgebra
 using BlockArrays

@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 
 @testset "CompactKernel kernelmatrix scalar ℓ" begin
     # 1D Wendland with scalar lengthscale should work with kernelmatrix

@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using KernelFunctions
 
 @testset "ScaledPVCrosscov" begin

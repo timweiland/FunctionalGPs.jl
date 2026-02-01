@@ -1,5 +1,5 @@
 using ReTest
-using GaussPDE
+using FunctionalGPs
 using KernelFunctions
 using LinearAlgebra
 

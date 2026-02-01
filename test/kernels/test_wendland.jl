@@ -1,5 +1,5 @@
 using ReTest
-using GaussPDE
+using FunctionalGPs
 using Polynomials
 import Random: seed!
 import FiniteDifferences: central_fdm
@@ -61,7 +61,7 @@ const FD_ORDER = 16
         @testset "d = $d, k=$k" for (d, k) in Iterators.product(1:2:5, 1:3)
             w = WendlandKernel(d, k, ℓ)
             @testset "n = $n, m=$m" for (n, m) in Iterators.product(0:k, 0:k)
-                𝒟k𝒟′ = GaussPDE.derivative(w, n, m)
+                𝒟k𝒟′ = FunctionalGPs.derivative(w, n, m)
                 if (n != 0) || (m != 0)
                     @test 𝒟k𝒟′ isa DerivativeKernel1D{n, m}
                 end
@@ -86,29 +86,29 @@ const FD_ORDER = 16
 
         @testset "d = $d, k=$k" for (d, k) in Iterators.product(1:2:5, 2:3)
             w = WendlandKernel(d, k, ℓ)
-            D2k = GaussPDE.derivative(w, 2, 0)
-            D2k_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 0), 1, 0)
+            D2k = FunctionalGPs.derivative(w, 2, 0)
+            D2k_concat = FunctionalGPs.derivative(FunctionalGPs.derivative(w, 1, 0), 1, 0)
             @test D2k == D2k_concat
 
-            Dk2 = GaussPDE.derivative(w, 0, 2)
-            Dk2_concat = GaussPDE.derivative(GaussPDE.derivative(w, 0, 1), 0, 1)
+            Dk2 = FunctionalGPs.derivative(w, 0, 2)
+            Dk2_concat = FunctionalGPs.derivative(FunctionalGPs.derivative(w, 0, 1), 0, 1)
             @test Dk2 == Dk2_concat
 
-            DkD = GaussPDE.derivative(w, 1, 1)
-            DkD_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 0), 0, 1)
+            DkD = FunctionalGPs.derivative(w, 1, 1)
+            DkD_concat = FunctionalGPs.derivative(FunctionalGPs.derivative(w, 1, 0), 0, 1)
             @test DkD == DkD_concat
 
             if k == 3
-                D3 = GaussPDE.derivative(w, 3, 0)
-                D3_concat = GaussPDE.derivative(GaussPDE.derivative(w, 2, 0), 1, 0)
+                D3 = FunctionalGPs.derivative(w, 3, 0)
+                D3_concat = FunctionalGPs.derivative(FunctionalGPs.derivative(w, 2, 0), 1, 0)
                 @test D3 == D3_concat
 
-                D2kD = GaussPDE.derivative(w, 2, 1)
-                D2kD_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 1), 1, 0)
+                D2kD = FunctionalGPs.derivative(w, 2, 1)
+                D2kD_concat = FunctionalGPs.derivative(FunctionalGPs.derivative(w, 1, 1), 1, 0)
                 @test D2kD == D2kD_concat
 
-                Dk2D = GaussPDE.derivative(w, 1, 2)
-                Dk2D_concat = GaussPDE.derivative(GaussPDE.derivative(w, 1, 1), 0, 1)
+                Dk2D = FunctionalGPs.derivative(w, 1, 2)
+                Dk2D_concat = FunctionalGPs.derivative(FunctionalGPs.derivative(w, 1, 1), 0, 1)
                 @test Dk2D == Dk2D_concat
             end
         end

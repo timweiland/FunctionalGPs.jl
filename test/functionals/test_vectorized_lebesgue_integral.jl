@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 
 @testset "VectorizedLebesgueIntegral" begin
     @testset "One-sided application" begin
