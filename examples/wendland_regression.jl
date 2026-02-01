@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using AbstractGPs, Plots
 import Random: seed!
 using Permutations

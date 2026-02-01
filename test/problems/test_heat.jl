@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using FiniteDifferences
 
 @testset "Heat1DIBVPTruncatedSineICDirichletBC" begin

@@ -1,5 +1,5 @@
 using ReTest
-using GaussPDE
+using FunctionalGPs
 import Random: seed!
 
 @testset "Array ops" begin

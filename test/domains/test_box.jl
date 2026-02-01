@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 
 @testset "BoxDomain" begin
     @testset "BoxDomain constructor" begin

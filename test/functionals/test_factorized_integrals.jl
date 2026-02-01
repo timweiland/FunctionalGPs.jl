@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using LinearAlgebra
 
 @testset "Factorized Integrals" begin

@@ -8,7 +8,7 @@ using InteractiveUtils
 begin
     import Pkg
     Pkg.activate(Base.current_project())
-    using GaussPDE
+    using FunctionalGPs
 end
 
 # ╔═╡ 8230b58f-088e-49b3-8a81-b355e1e569a3
@@ -65,7 +65,7 @@ u(t, x) = 0 \quad (x \in \partial \mathbb{X})
 md"""
 We do all of this on a rectangular domain.
 
-GaussPDE has a pre-implemented utility function for this problem setup. It includes an analytic solution to compare our solver against.
+FunctionalGPs has a pre-implemented utility function for this problem setup. It includes an analytic solution to compare our solver against.
 """
 
 # ╔═╡ 826a9b82-38ae-4344-baf6-2ba2c808c239

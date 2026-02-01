@@ -1,5 +1,5 @@
 @testset "Linear Differential Operator" begin
-    using GaussPDE
+    using FunctionalGPs
 
     coeffs_dict = Dict(1 => Dict((1,) => 42.0, (2,) => 1.0), 2 => Dict((3,) => 10.0))
 

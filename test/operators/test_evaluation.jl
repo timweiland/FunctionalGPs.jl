@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using ReTest
 using Random: seed!
 

@@ -1,6 +1,6 @@
-module GaussPDETests
+module FunctionalGPsTests
 
-using GaussPDE
+using FunctionalGPs
 using ReTest
 using Aqua
 import SparseArrays.CHOLMOD.Factor as SparseCholFactor
@@ -53,9 +53,9 @@ include("test_sin_regression.jl")
 include("problems/test_heat.jl")
 
 @testset "Aqua" begin
-    Aqua.test_all(GaussPDE; piracies = false, ambiguities = false)
-    Aqua.test_piracies(GaussPDE; treat_as_own = [MvNormal, SparseCholFactor])
-    @test length(Test.detect_ambiguities(GaussPDE)) == 0
+    Aqua.test_all(FunctionalGPs; piracies = false, ambiguities = false)
+    Aqua.test_piracies(FunctionalGPs; treat_as_own = [MvNormal, SparseCholFactor])
+    @test length(Test.detect_ambiguities(FunctionalGPs)) == 0
 end
 
 end

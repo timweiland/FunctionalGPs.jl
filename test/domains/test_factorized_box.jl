@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 
 @testset "FactorizedBox" begin
     interval_vec1 = [Interval(0, 1), Interval(2, 3)]

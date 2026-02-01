@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using AbstractGPs
 using WGLMakie
 using Random

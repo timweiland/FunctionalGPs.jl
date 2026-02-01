@@ -1,5 +1,5 @@
-using GaussPDE
-using GaussPDE: ⊗, derivative
+using FunctionalGPs
+using FunctionalGPs: ⊗, derivative
 using Test
 using LinearAlgebra
 using Kronecker: kron

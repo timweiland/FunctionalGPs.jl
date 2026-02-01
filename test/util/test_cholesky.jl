@@ -1,6 +1,6 @@
 @testset "Unified Cholesky" begin
     using ReTest
-    using GaussPDE
+    using FunctionalGPs
     using LinearAlgebra
     using SparseArrays
     using Random: seed!

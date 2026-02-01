@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 
 @testset "Interval" begin
     # Test Interval constructor

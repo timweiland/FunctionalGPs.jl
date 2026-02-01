@@ -4,9 +4,9 @@
         @testset "n = $n, m=$m" for (n, m) in Iterators.product(0:k, 0:k)
             𝒟₁ = PartialDerivative((n,))
             𝒟₂ = PartialDerivative((m,))
-            @test 𝒟₂(w) ≈ GaussPDE.derivative(w, 0, m)
-            @test 𝒟₁(w, arg = 1) ≈ GaussPDE.derivative(w, n, 0)
-            @test 𝒟₁(𝒟₂(w), arg = 1) ≈ GaussPDE.derivative(w, n, m)
+            @test 𝒟₂(w) ≈ FunctionalGPs.derivative(w, 0, m)
+            @test 𝒟₁(w, arg = 1) ≈ FunctionalGPs.derivative(w, n, 0)
+            @test 𝒟₁(𝒟₂(w), arg = 1) ≈ FunctionalGPs.derivative(w, n, m)
             @test_throws DomainError 𝒟₂(w, arg = 3)
         end
     end

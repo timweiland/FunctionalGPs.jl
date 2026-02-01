@@ -1,4 +1,4 @@
-using GaussPDE
+using FunctionalGPs
 using AbstractGPs
 using KernelFunctions
 import KernelFunctions: kernelmatrix

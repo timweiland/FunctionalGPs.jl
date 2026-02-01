@@ -1,5 +1,5 @@
 @testset "Partial Derivative" begin
-    using GaussPDE
+    using FunctionalGPs
     using ReTest
 
     @testset "Creation" begin

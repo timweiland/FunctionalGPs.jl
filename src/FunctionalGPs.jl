@@ -1,4 +1,4 @@
-module GaussPDE
+module FunctionalGPs
 
 using LinearAlgebra
 
