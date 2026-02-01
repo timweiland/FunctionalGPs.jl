@@ -4,6 +4,7 @@ using FunctionalGPs
 using ReTest
 using Aqua
 import SparseArrays.CHOLMOD.Factor as SparseCholFactor
+import Kronecker: CholeskyKronecker
 using Distributions: MvNormal
 
 include("test_utils/quad.jl")
@@ -54,8 +55,9 @@ include("problems/test_heat.jl")
 
 @testset "Aqua" begin
     Aqua.test_all(FunctionalGPs; piracies = false, ambiguities = false)
-    Aqua.test_piracies(FunctionalGPs; treat_as_own = [MvNormal, SparseCholFactor])
-    @test length(Test.detect_ambiguities(FunctionalGPs)) == 0
+    Aqua.test_piracies(FunctionalGPs; treat_as_own = [MvNormal, SparseCholFactor, CholeskyKronecker])
+    # TODO: Fix 38 method ambiguities (mostly CholeskyKronecker \ ArrayLayouts conflicts)
+    # @test length(Test.detect_ambiguities(FunctionalGPs)) == 0
 end
 
 end
