@@ -22,7 +22,7 @@ const FD_ORDER = 16
 
     @testset "ϕ_l polynomial expansion (l=$l)" for l in 1:11
         for x in rand(10)
-            @test isapprox(ϕ_l(l)(x), (1 - x)^l, atol = 1.0e-8)
+            @test isapprox(FunctionalGPs.ϕ_l(l)(x), (1 - x)^l, atol = 1.0e-8)
         end
     end
 
