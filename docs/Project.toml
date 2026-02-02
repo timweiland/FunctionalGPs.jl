@@ -1,0 +1,9 @@
+[deps]
+AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterVitepress = "4710194d-e776-4893-9690-8d956a29c365"
+FunctionalGPs = "9c281965-9d98-4de5-9c8e-371bea37d9e9"
+Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
+
+[compat]
+Documenter = "1"
