@@ -22,7 +22,7 @@ and analytic derivatives.
 # Common Variants
 | P | ν   | Smoothness        | Equivalent         |
 |---|-----|-------------------|--------------------|
-| 0 | 1/2 | Continuous        | Exponential kernel |
+| 0 | 1/2 | Not differentiable | Exponential kernel |
 | 1 | 3/2 | Once differentiable | —                |
 | 2 | 5/2 | Twice differentiable | —               |
 
