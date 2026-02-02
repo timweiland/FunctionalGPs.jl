@@ -1,0 +1,25 @@
+{
+  "scripts": {
+    "docs:dev": "vitepress dev build/.documenter",
+    "docs:build": "vitepress build build/.documenter",
+    "docs:preview": "vitepress preview build/.documenter"
+  },
+  "dependencies": {
+    "@mdit/plugin-mathjax": "^0.24.1",
+    "@nolebase/vitepress-plugin-enhanced-readabilities": "^2.14.0",
+    "markdown-it": "^14.1.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-mathjax3": "^4.3.2",
+    "vitepress-plugin-tabs": "^0.6.0"
+  },
+  "name": "docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
