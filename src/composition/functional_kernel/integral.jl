@@ -10,6 +10,14 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     return IntegralPVCrosscov(k, ℒ.domains, arg)
 end
 
+# Disambiguation for ScaledKernel - scale the result
+function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+        k::ScaledKernel;
+        arg = 2,
+    ) where {T}
+    return k.σ² * ℒ(k.kernel; arg = arg)
+end
+
 function cancel_integral(
         k::DerivativeKernel1D{N, M},
         ℒ::VectorizedLebesgueIntegral{Interval{T}};
