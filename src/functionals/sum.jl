@@ -1,4 +1,4 @@
-export AbstractSumLinearFunctional
+export AbstractSumLinearFunctional, SumLinearFunctional, summands
 
 """
     AbstractSumLinearFunctional{N} <: AbstractLinearFunctional

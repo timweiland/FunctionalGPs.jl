@@ -1,4 +1,4 @@
-export AbstractSumLinearFunctionOperator
+export AbstractSumLinearFunctionOperator, SumLinearFunctionOperator
 
 abstract type AbstractSumLinearFunctionOperator{N} <: AbstractLinearFunctionOperator end
 summands(op::AbstractSumLinearFunctionOperator) = op.summands

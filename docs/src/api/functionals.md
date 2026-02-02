@@ -81,22 +81,26 @@ k = k_x ⊗ k_y  # Tensor product kernel
 
 ## API Reference
 
-### Abstract Types
-
-```@docs
-AbstractLinearFunctional
-AbstractSumLinearFunctional
-AbstractLinFctlLinFuncOpConcat
-```
-
-### Core Functionals
+### Point Evaluation
 
 ```@docs
 EvaluationFunctional
+```
+
+### Integration
+
+```@docs
 VectorizedLebesgueIntegral
 ```
 
-### Composite Functionals
+### Differential Operators
+
+```@docs
+PartialDerivative
+AbstractLinearFunctionOperator
+```
+
+### Combining Functionals
 
 ```@docs
 StackedLinearFunctional
@@ -105,12 +109,10 @@ SumLinearFunctional
 LinFctlLinFuncOpConcat
 ```
 
-### Accessor Functions
+### Abstract Types
 
 ```@docs
-output_shape
-summands
-factors
-linfctl
-linfuncops
+AbstractLinearFunctional
+AbstractSumLinearFunctional
+AbstractLinFctlLinFuncOpConcat
 ```
