@@ -14,6 +14,7 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Kernels" => "kernels.md",
     ],
     warnonly = true,
 )
