@@ -1,12 +1,47 @@
 export AbstractSumLinearFunctional
 
+"""
+    AbstractSumLinearFunctional{N} <: AbstractLinearFunctional
+
+Abstract type for sums of linear functionals.
+
+Sums are created using the `+` operator on functionals. All summands must have
+the same output shape.
+
+# See also
+- [`SumLinearFunctional`](@ref): Concrete implementation
+"""
 abstract type AbstractSumLinearFunctional{N} <: AbstractLinearFunctional end
+
+"""
+    summands(ℒ::AbstractSumLinearFunctional)
+
+Return the tuple of summand functionals.
+"""
 summands(op::AbstractSumLinearFunctional) = op.summands
 
 function Base.show(io::IO, op::AbstractSumLinearFunctional)
     return print(io, join(["($(string(summand)))" for summand in summands(op)], " + "))
 end
 
+"""
+    SumLinearFunctional{N} <: AbstractSumLinearFunctional{N}
+
+A sum of N linear functionals, typically created using the `+` operator.
+
+The sum functional applies each summand and adds the results. All summands must
+have the same output shape.
+
+# Fields
+- `summands::NTuple{N, AbstractLinearFunctional}`: The functionals being summed
+
+# Example
+```julia
+δ1 = EvaluationFunctional([0.0, 0.5])
+δ2 = EvaluationFunctional([1.0, 1.5])
+sum_fctl = δ1 + δ2  # Creates SumLinearFunctional
+```
+"""
 struct SumLinearFunctional{N} <: AbstractSumLinearFunctional{N}
     summands::NTuple{N, AbstractLinearFunctional}
 

@@ -14,7 +14,10 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
-        "Kernels" => "kernels.md",
+        "API Reference" => [
+            "Functionals" => "api/functionals.md",
+            "Kernels" => "api/kernels.md",
+        ],
     ],
     warnonly = true,
 )
