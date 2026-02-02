@@ -5,7 +5,50 @@ using Polynomials
 export HalfIntegerMaternKernel
 
 """
-    ν = (P + 1//2) Matern
+    HalfIntegerMaternKernel{P, ND, TL, TD, TP} <: Kernel
+
+A Matérn kernel with half-integer smoothness parameter `ν = P + 1/2`.
+
+The Matérn kernel is a popular choice for GP regression due to its tunable
+smoothness. Half-integer values of `ν` admit closed-form expressions as
+products of exponentials and polynomials, enabling efficient computation
+and analytic derivatives.
+
+# Type Parameters
+- `P`: Integer such that `ν = P + 1/2` (e.g., `P=0` gives ν=1/2, `P=1` gives ν=3/2)
+- `ND`: Number of input dimensions
+- `TL`, `TD`, `TP`: Internal types for lengthscales, distance metric, and polynomial
+
+# Common Variants
+| P | ν   | Smoothness        | Equivalent         |
+|---|-----|-------------------|--------------------|
+| 0 | 1/2 | Continuous        | Exponential kernel |
+| 1 | 3/2 | Once differentiable | —                |
+| 2 | 5/2 | Twice differentiable | —               |
+
+# Constructor
+    HalfIntegerMaternKernel(p::Int, lengthscales)
+
+Create a Matérn kernel with ν = `p` + 1/2 and the given lengthscales.
+
+# Arguments
+- `p`: Non-negative integer determining smoothness (ν = p + 1/2)
+- `lengthscales`: Scalar or vector of lengthscales (one per dimension)
+
+# Examples
+```julia
+# Matérn-5/2 kernel (twice differentiable) in 1D with lengthscale 1.0
+k = HalfIntegerMaternKernel(2, [1.0])
+k([0.0], [0.5])  # Evaluate kernel
+
+# Matérn-3/2 in 2D with different lengthscales per dimension
+k2d = HalfIntegerMaternKernel(1, [0.5, 1.0])
+
+# Compute derivatives (1D only)
+dk = derivative(k, 1, 0)  # ∂k/∂x
+```
+
+See also: [`derivative`](@ref), [`WendlandKernel`](@ref)
 """
 struct HalfIntegerMaternKernel{P, ND, TL, TD, TP} <: KernelFunctions.Kernel
     lengthscales::TL
@@ -16,11 +59,22 @@ end
 kernel_structure(::HalfIntegerMaternKernel) = StationaryKernelTrait()
 
 """
-    HalfIntegerMaternDerivativeEvenKernel
+    HalfIntegerMaternDerivativeEvenKernel{TK, TP, TC} <: Kernel
 
-Stationary kernel arising from taking an even-order derivative of a 1D
-half-integer Matérn kernel. The kernel remains stationary up to a global sign
-and therefore benefits from the lazy stationary machinery.
+Stationary kernel arising from an even-order derivative of a 1D Matérn kernel.
+
+When the total derivative order (n + m) is even, the resulting kernel
+`∂ⁿ⁺ᵐk/∂xⁿ∂yᵐ` remains stationary: it depends only on `|x - y|`. This
+enables efficient Toeplitz-based computations for uniformly-spaced data.
+
+Typically constructed via [`derivative`](@ref) rather than directly.
+
+# Fields
+- `base`: The original [`HalfIntegerMaternKernel`](@ref)
+- `polynomial`: Polynomial factor in the derivative expression
+- `coefficient`: Scalar coefficient including sign and lengthscale factors
+
+See also: [`HalfIntegerMaternDerivativeOddKernel`](@ref), [`derivative`](@ref)
 """
 struct HalfIntegerMaternDerivativeEvenKernel{TK, TP, TC} <: KernelFunctions.Kernel
     base::TK
@@ -29,11 +83,24 @@ struct HalfIntegerMaternDerivativeEvenKernel{TK, TP, TC} <: KernelFunctions.Kern
 end
 
 """
-    HalfIntegerMaternDerivativeOddKernel
+    HalfIntegerMaternDerivativeOddKernel{TK, TP, TC, TR} <: Kernel
 
-Kernel representing an odd-order mixed derivative of a 1D half-integer Matérn.
-The sign depends on the input ordering, so it cannot exploit stationary
-structure directly.
+Signed-stationary kernel arising from an odd-order derivative of a 1D Matérn.
+
+When the total derivative order (n + m) is odd, the resulting kernel has
+structure `k(x,y) = sign(x-y) · f(|x-y|)`. This "signed-stationary" form
+still admits specialized matrix representations but differs from standard
+stationary kernels.
+
+Typically constructed via [`derivative`](@ref) rather than directly.
+
+# Fields
+- `base`: The original [`HalfIntegerMaternKernel`](@ref)
+- `polynomial`: Polynomial factor in the derivative expression
+- `coefficient`: Scalar coefficient including sign and lengthscale factors
+- `rho`: Scaled inverse lengthscale `√(2ν)/ℓ`
+
+See also: [`HalfIntegerMaternDerivativeEvenKernel`](@ref), [`derivative`](@ref)
 """
 struct HalfIntegerMaternDerivativeOddKernel{TK, TP, TC, TR} <: KernelFunctions.Kernel
     base::TK

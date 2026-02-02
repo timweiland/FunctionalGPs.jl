@@ -7,17 +7,23 @@ export AbstractCompactKernel,
 export CompactPolynomialKernel, CompactSignedPolynomialKernel
 
 """
-    abstract type AbstractCompactKernel{X<:Number} <: KernelFunctions.Kernel
-Abstract type representing a compact kernel function.
+    AbstractCompactKernel{X} <: Kernel
 
-# Examples
-```julia
-julia> struct MyKernel <: AbstractCompactKernel{Float64} end
+Abstract base type for compactly-supported kernels.
 
-julia> lengthscales(k::MyKernel) = 0.5
+Compact kernels are exactly zero when inputs are farther apart than a
+threshold (determined by `lengthscales`). This enables sparse kernel matrices
+and efficient computation for large datasets.
 
-julia> k_support(k::MyKernel, x, y) = sum(x .* y)
-```
+# Interface
+Subtypes must implement:
+- `lengthscales(k)`: Return the lengthscale(s) defining the support radius
+- `k_support(k, x, y)`: Evaluate the kernel within its support region
+
+# Type Parameter
+- `X`: Element type of the lengthscale parameter
+
+See also: [`AbstractCompactRadialKernel`](@ref), [`CompactPolynomialKernel`](@ref)
 """
 abstract type AbstractCompactKernel{X <: Number} <: KernelFunctions.Kernel end
 
@@ -34,17 +40,22 @@ function (k::AbstractCompactKernel)(x, y)
 end
 
 """
-    abstract type AbstractCompactRadialKernel{X<:Number} <: AbstractCompactKernel{X}
-Abstract type representing a compact radial kernel function.
+    AbstractCompactRadialKernel{X} <: AbstractCompactKernel{X}
 
-# Examples
-```julia
-julia> struct MyRadialKernel <: AbstractCompactRadialKernel{Float64} end
+Abstract type for compact radial (isotropic) kernels.
 
-julia> lengthscales(k::MyRadialKernel) = 0.1
+Radial kernels depend only on the distance `r = ‖x - y‖/ℓ` between inputs.
+Combined with compact support, these kernels enable both sparsity and
+efficient stationary-structure optimizations.
 
-julia> k_r(k::MyRadialKernel, r::Number) = exp(-r^2)
-```
+# Interface
+Subtypes must implement:
+- `lengthscales(k)`: Return the lengthscale(s)
+- `k_r(k, r)`: Evaluate the kernel as a function of normalized distance `r ∈ [0,1]`
+
+The `k_support` method is automatically defined via `k_r`.
+
+See also: [`AbstractCompactKernel`](@ref), [`CompactPolynomialKernel`](@ref)
 """
 abstract type AbstractCompactRadialKernel{X <: Number} <: AbstractCompactKernel{X} end
 
@@ -56,17 +67,22 @@ function k_support(k::AbstractCompactRadialKernel, x, y)
 end
 
 """
-    abstract type AbstractCompactSignedRadialKernel{X<:Number} <: AbstractCompactKernel{X}
-Abstract type representing a compact signed radial kernel function.
+    AbstractCompactSignedRadialKernel{X} <: AbstractCompactKernel{X}
 
-# Examples
-```julia
-julia> struct MySignedRadialKernel <: AbstractCompactSignedRadialKernel{Float64} end
+Abstract type for compact signed radial kernels.
 
-julia> lengthscales(k::MySignedRadialKernel) = 0.1
+Signed radial kernels have the form `k(x,y) = sign(x-y) · f(|x-y|/ℓ)`.
+This structure arises from odd-order derivatives of radial kernels.
+Primarily used in 1D for derivative kernel representations.
 
-julia> k_r(k::MySignedRadialKernel, r::Number) = exp(-r^2)
-```
+# Interface
+Subtypes must implement:
+- `lengthscales(k)`: Return the lengthscale
+- `k_r(k, r)`: Evaluate the unsigned radial factor for `r ∈ [0,1]`
+
+The `k_support` method is automatically defined with the sign factor.
+
+See also: [`AbstractCompactKernel`](@ref), [`CompactSignedPolynomialKernel`](@ref)
 """
 abstract type AbstractCompactSignedRadialKernel{X <: Number} <: AbstractCompactKernel{X} end
 function k_support(k::AbstractCompactSignedRadialKernel, x, y)
@@ -74,15 +90,44 @@ function k_support(k::AbstractCompactSignedRadialKernel, x, y)
 end
 
 """
-    struct CompactPolynomialKernel{T<:Number, X <: Number} <: AbstractCompactRadialKernel{X}
+    CompactPolynomialKernel{T, X} <: AbstractCompactRadialKernel{X}
 
-CompactPolynomialKernel represents a kernel function defined by a polynomial within its
-    compact support.
+A compactly-supported kernel defined by evaluating a polynomial on normalized distance.
+
+The kernel is:
+```
+k(x, y) = poly(r)  if r = ‖x - y‖/ℓ ≤ 1
+k(x, y) = 0        otherwise
+```
+where `poly` is the defining polynomial and `ℓ` is the lengthscale.
+
+# Type Parameters
+- `T`: Coefficient type of the polynomial
+- `X`: Element type of the lengthscale
 
 # Fields
-- `poly::Polynomial{T}`: The polynomial.
-- `lengthscales::Union{X,AbstractVector{X}}`: The lengthscales, which also define the compact support.
+- `poly`: Polynomial evaluated at normalized distance `r ∈ [0,1]`
+- `lengthscales`: Scalar or vector defining the support radius
 
+# Constructor
+    CompactPolynomialKernel(poly::Polynomial, [lengthscales=1.0])
+
+# Examples
+```julia
+using Polynomials
+
+# Custom polynomial kernel: k(r) = 1 - r² for r ≤ 1
+p = Polynomial([1, 0, -1])
+k = CompactPolynomialKernel(p)
+
+# With lengthscale 0.5 (support radius = 0.5)
+k = CompactPolynomialKernel(p, 0.5)
+
+# Wendland kernels are CompactPolynomialKernels
+k = WendlandKernel(1, 2)  # Returns a CompactPolynomialKernel
+```
+
+See also: [`WendlandKernel`](@ref), [`CompactSignedPolynomialKernel`](@ref)
 """
 struct CompactPolynomialKernel{T <: Number, X <: Number} <: AbstractCompactRadialKernel{X}
     poly::Polynomial{T}
@@ -104,16 +149,34 @@ function Base.isapprox(k1::CompactPolynomialKernel, k2::CompactPolynomialKernel)
 end
 
 """
-    struct CompactSignedPolynomialKernel{T<:Number, X <: Number} <: AbstractCompactSignedRadialKernel{X}
+    CompactSignedPolynomialKernel{T, X} <: AbstractCompactSignedRadialKernel{X}
 
-CompactSignedPolynomialKernel represents a kernel function defined by a polynomial
-    multiplied by the sign of x - y within its compact support.
-For more information, see the documentation for `CompactPolynomialKernel`.
+A compactly-supported signed kernel defined by a polynomial times `sign(x-y)`.
+
+The kernel is:
+```
+k(x, y) = sign(x - y) · poly(|x - y|/ℓ)  if |x - y|/ℓ ≤ 1
+k(x, y) = 0                               otherwise
+```
+
+This structure arises from odd-order derivatives of compact polynomial kernels.
+It is antisymmetric: `k(x, y) = -k(y, x)`.
+
+# Type Parameters
+- `T`: Coefficient type of the polynomial
+- `X`: Element type of the lengthscale
 
 # Fields
-- `poly::Polynomial{T}`: The polynomial used in the kernel.
-- `lengthscales::Union{X,AbstractVector{X}}`: The lengthscales of the kernel.
+- `poly`: Polynomial evaluated at normalized distance
+- `lengthscales`: Scalar or vector defining the support radius
 
+# Constructor
+    CompactSignedPolynomialKernel(poly::Polynomial, [lengthscales=1.0])
+
+Typically constructed via [`derivative`](@ref) on a [`CompactPolynomialKernel`](@ref)
+rather than directly.
+
+See also: [`CompactPolynomialKernel`](@ref), [`derivative`](@ref)
 """
 struct CompactSignedPolynomialKernel{T <: Number, X <: Number} <:
     AbstractCompactSignedRadialKernel{X}
