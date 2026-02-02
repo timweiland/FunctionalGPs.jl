@@ -1,5 +1,27 @@
 export PartialDerivative
 
+"""
+    PartialDerivative(multi_idx::NTuple{M, Integer})
+    PartialDerivative{N}(output_idx, multi_idx)
+
+A partial derivative operator specified by a multi-index.
+
+The multi-index `(i₁, i₂, ...)` represents the operator `∂^(i₁+i₂+...)/∂x₁^i₁∂x₂^i₂...`.
+
+# Examples
+```julia
+∂x = PartialDerivative((1,))      # ∂/∂x (first derivative in 1D)
+∂xx = PartialDerivative((2,))     # ∂²/∂x² (second derivative in 1D)
+∂xy = PartialDerivative((1, 1))   # ∂²/∂x∂y (mixed partial in 2D)
+```
+
+# Composing with functionals
+```julia
+δ = EvaluationFunctional([0.0, 0.5, 1.0])
+∂x = PartialDerivative((1,))
+δ_dx = δ ∘ ∂x  # Evaluate the first derivative at the given points
+```
+"""
 struct PartialDerivative{N, M} <: AbstractDifferentialOperator
     output_idx::Integer
     multi_idx::NTuple{M, Integer}
