@@ -28,13 +28,6 @@ derivative
 DerivativeKernel1D
 ```
 
-Internal derivative kernel types (typically constructed via `derivative`):
-
-```@docs
-HalfIntegerMaternDerivativeEvenKernel
-HalfIntegerMaternDerivativeOddKernel
-```
-
 ## Wendland Kernels
 
 Wendland kernels are compactly supported (exactly zero beyond a radius), enabling sparse kernel matrices for large-scale problems.
@@ -42,7 +35,6 @@ Wendland kernels are compactly supported (exactly zero beyond a radius), enablin
 ```@docs
 WendlandKernel
 WendlandPolynomial
-ϕ_l
 ```
 
 ## Compact Kernels

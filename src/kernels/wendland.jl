@@ -1,6 +1,6 @@
 using Polynomials
 
-export WendlandPolynomial, WendlandKernel, ϕ_l
+export WendlandPolynomial, WendlandKernel
 
 """
     ϕ_l(l::Int) -> Polynomial
@@ -46,7 +46,7 @@ p = WendlandPolynomial(1, 1)
 p = WendlandPolynomial(3, 2)
 ```
 
-See also: [`WendlandKernel`](@ref), [`ϕ_l`](@ref)
+See also: [`WendlandKernel`](@ref)
 """
 function WendlandPolynomial(d::Int, k::Int)
     l = Int(d ÷ 2 + k + 1)
