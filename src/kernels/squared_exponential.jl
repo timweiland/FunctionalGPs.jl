@@ -1,7 +1,9 @@
 # Squared Exponential (RBF/Gaussian) kernel support
 # Dispatches on KernelFunctions.SqExponentialKernel and TransformedKernel variants
 
-using KernelFunctions: SqExponentialKernel, TransformedKernel, ScaleTransform
+using KernelFunctions:
+    SqExponentialKernel, TransformedKernel, ScaleTransform, ARDTransform,
+    KernelTensorProduct
 using Polynomials
 
 # ============================================================================
@@ -202,4 +204,76 @@ function derivative(
     end
 
     return DerivativeKernel1D{n, m}(k, inner)
+end
+
+# ============================================================================
+# Multi-dimensional support via tensor product decomposition
+# ============================================================================
+
+# The SE kernel has an inherent tensor product structure:
+#   k(x,y) = exp(-Σᵢ (xᵢ-yᵢ)²/(2ℓᵢ²)) = Πᵢ exp(-(xᵢ-yᵢ)²/(2ℓᵢ²))
+#
+# This allows multi-D derivatives to be computed as tensor products of 1D derivatives.
+
+"""
+    se_tensor_product(ndims::Int)
+    se_tensor_product(scales::AbstractVector)
+
+Decompose an SE kernel into a `KernelTensorProduct` of 1D SE kernels.
+
+# Arguments
+- `ndims`: Number of dimensions (uses unit lengthscale in each dimension)
+- `scales`: Per-dimension scale factors (s = 1/ℓ)
+
+# Examples
+```julia
+# 2D SE with unit lengthscales
+k2d = se_tensor_product(2)
+
+# 2D SE with different lengthscales
+k2d_ard = se_tensor_product([1/0.5, 1/1.0])  # ℓ₁=0.5, ℓ₂=1.0
+
+# Apply partial derivatives
+∂xy = PartialDerivative((1, 1))
+dk = ∂xy(k2d_ard)  # Returns KernelTensorProduct of 1D derivatives
+```
+"""
+function se_tensor_product(ndims::Int)
+    ndims > 0 || throw(ArgumentError("ndims must be positive"))
+    return KernelTensorProduct([SqExponentialKernel() for _ in 1:ndims])
+end
+
+function se_tensor_product(scales::AbstractVector)
+    isempty(scales) && throw(ArgumentError("scales must not be empty"))
+    kernels = [SqExponentialKernel() ∘ ScaleTransform(s) for s in scales]
+    return KernelTensorProduct(kernels)
+end
+
+"""
+    _se_scales(k::TransformedKernel{<:SqExponentialKernel, <:ARDTransform})
+
+Extract per-dimension scale factors from an ARD-transformed SE kernel.
+"""
+function _se_scales(k::TransformedKernel{<:SqExponentialKernel, <:ARDTransform})
+    return k.transform.v
+end
+
+"""
+    _to_tensor_product(k::SqExponentialKernel, ndims::Int)
+
+Convert an SE kernel to tensor product form for multi-D derivative computation.
+"""
+_to_tensor_product(::SqExponentialKernel, ndims::Int) = se_tensor_product(ndims)
+
+function _to_tensor_product(
+        k::TransformedKernel{<:SqExponentialKernel, <:ScaleTransform},
+        ndims::Int,
+    )
+    s = _se_scale(k)
+    return se_tensor_product(fill(s, ndims))
+end
+
+function _to_tensor_product(k::TransformedKernel{<:SqExponentialKernel, <:ARDTransform}, ::Int)
+    scales = _se_scales(k)
+    return se_tensor_product(scales)
 end

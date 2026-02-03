@@ -51,3 +51,60 @@ function (op::PartialDerivative{1, M})(pv::TensorProductCrosscov{M}) where {M}
     end
     return TensorProductCrosscov(factors...)
 end
+
+########### Squared Exponential multi-D support ###########
+# SE kernels have tensor product structure, so multi-index derivatives
+# decompose into products of 1D derivatives.
+
+using KernelFunctions: SqExponentialKernel, TransformedKernel, ScaleTransform, ARDTransform
+
+# Disambiguation: 1D case uses the generic derivative path
+function (op::PartialDerivative{1, 1})(
+        k::SqExponentialKernel;
+        arg::Integer = 2,
+    )
+    if arg ∉ [1, 2]
+        throw(DomainError(arg, "arg must be 1 or 2"))
+    end
+    if arg == 1
+        return derivative(k, op.order, 0)
+    else
+        return derivative(k, 0, op.order)
+    end
+end
+
+function (op::PartialDerivative{1, 1})(
+        k::TransformedKernel{<:SqExponentialKernel, <:ScaleTransform};
+        arg::Integer = 2,
+    )
+    if arg ∉ [1, 2]
+        throw(DomainError(arg, "arg must be 1 or 2"))
+    end
+    if arg == 1
+        return derivative(k, op.order, 0)
+    else
+        return derivative(k, 0, op.order)
+    end
+end
+
+# Multi-D case (M > 1): decompose via tensor product
+function (op::PartialDerivative{1, M})(k::SqExponentialKernel; kwargs...) where {M}
+    k_tensor = _to_tensor_product(k, M)
+    return op(k_tensor; kwargs...)
+end
+
+function (op::PartialDerivative{1, M})(
+        k::TransformedKernel{<:SqExponentialKernel, <:ScaleTransform};
+        kwargs...,
+    ) where {M}
+    k_tensor = _to_tensor_product(k, M)
+    return op(k_tensor; kwargs...)
+end
+
+function (op::PartialDerivative{1, M})(
+        k::TransformedKernel{<:SqExponentialKernel, <:ARDTransform};
+        kwargs...,
+    ) where {M}
+    k_tensor = _to_tensor_product(k, M)
+    return op(k_tensor; kwargs...)
+end

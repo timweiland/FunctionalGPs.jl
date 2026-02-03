@@ -1,5 +1,5 @@
 using ForwardDiff
-using KernelFunctions: SqExponentialKernel, ScaleTransform
+using KernelFunctions: SqExponentialKernel, ScaleTransform, ARDTransform, KernelTensorProduct
 using ToeplitzMatrices: SymmetricToeplitz
 
 # ============================================================================
@@ -164,4 +164,178 @@ end
     dense_cross = kernelmatrix(k, X_left, X_right)
 
     @test lazy_cross ≈ dense_cross atol = 1.0e-9 rtol = 1.0e-7
+end
+
+# ============================================================================
+# Multi-dimensional derivative tests
+# ============================================================================
+
+function _autodiff_se_derivative_nd(k, x, y, α, β)
+    # α, β are tuples of derivative orders per dimension
+    # Recursively compute mixed partial derivatives via ForwardDiff
+    D = length(α)
+    @assert D == length(β) == length(x) == length(y)
+
+    result = k(x, y)
+
+    # Apply derivatives w.r.t. x components
+    for (i, order) in enumerate(α)
+        for _ in 1:order
+            x_val = x[i]
+            result = ForwardDiff.derivative(
+                t -> begin
+                    x_new = collect(x)
+                    x_new[i] = t
+                    k(x_new, y)
+                end, x_val
+            )
+            # Update for next iteration - need fresh closure each time
+            x_i = x[i]
+            result_prev = result
+            k_partial = (x_test, y_test) -> begin
+                # This is getting complex, let's simplify
+                return result_prev
+            end
+        end
+    end
+
+    # Actually, let's use a simpler recursive approach
+    return _autodiff_partial_recursive(k, collect(x), collect(y), collect(α), collect(β))
+end
+
+function _autodiff_partial_recursive(k, x, y, α, β)
+    # Find first nonzero derivative order
+    for i in eachindex(α)
+        if α[i] > 0
+            α_new = copy(α)
+            α_new[i] -= 1
+            return ForwardDiff.derivative(
+                t -> begin
+                    # Promote all elements to the same type as t
+                    T = typeof(t)
+                    x_new = Vector{T}(undef, length(x))
+                    for j in eachindex(x)
+                        x_new[j] = j == i ? t : T(x[j])
+                    end
+                    return _autodiff_partial_recursive(k, x_new, y, α_new, β)
+                end,
+                x[i],
+            )
+        end
+    end
+    for i in eachindex(β)
+        if β[i] > 0
+            β_new = copy(β)
+            β_new[i] -= 1
+            return ForwardDiff.derivative(
+                t -> begin
+                    T = typeof(t)
+                    y_new = Vector{T}(undef, length(y))
+                    for j in eachindex(y)
+                        y_new[j] = j == i ? t : T(y[j])
+                    end
+                    return _autodiff_partial_recursive(k, x, y_new, α, β_new)
+                end,
+                y[i],
+            )
+        end
+    end
+    # All derivatives done
+    return k(x, y)
+end
+
+@testset "SE tensor product decomposition" begin
+    # Test se_tensor_product construction
+    k2 = FunctionalGPs.se_tensor_product(2)
+    @test k2 isa KernelTensorProduct
+    @test length(k2.kernels) == 2
+
+    # With scales
+    k2_scaled = FunctionalGPs.se_tensor_product([2.0, 3.0])
+    @test k2_scaled isa KernelTensorProduct
+    @test length(k2_scaled.kernels) == 2
+
+    # Tensor product should give same result as base SE kernel
+    k_base = SqExponentialKernel()
+    x = [0.3, 0.5]
+    y = [0.7, 0.2]
+    @test k2(x, y) ≈ k_base(x, y) atol = 1.0e-12
+end
+
+@testset "Multi-D SE derivatives via PartialDerivative" begin
+    @testset "2D unit scale" begin
+        k = SqExponentialKernel()
+        x = [0.3, 0.5]
+        y = [0.7, 0.2]
+
+        # ∂/∂y₁ (default arg=2 means second argument)
+        ∂y1 = PartialDerivative((1, 0))
+        dk = ∂y1(k)
+        @test dk isa KernelTensorProduct
+        expected = _autodiff_partial_recursive(k, x, y, [0, 0], [1, 0])
+        @test dk(x, y) ≈ expected atol = 1.0e-8 rtol = 1.0e-6
+
+        # ∂/∂y₂
+        ∂y2 = PartialDerivative((0, 1))
+        dk2 = ∂y2(k)
+        expected2 = _autodiff_partial_recursive(k, x, y, [0, 0], [0, 1])
+        @test dk2(x, y) ≈ expected2 atol = 1.0e-8 rtol = 1.0e-6
+
+        # ∂²/∂y₁∂y₂
+        ∂y1y2 = PartialDerivative((1, 1))
+        dk12 = ∂y1y2(k)
+        expected12 = _autodiff_partial_recursive(k, x, y, [0, 0], [1, 1])
+        @test dk12(x, y) ≈ expected12 atol = 1.0e-8 rtol = 1.0e-6
+
+        # ∂²/∂y₁²
+        ∂y1y1 = PartialDerivative((2, 0))
+        dk11 = ∂y1y1(k)
+        expected11 = _autodiff_partial_recursive(k, x, y, [0, 0], [2, 0])
+        @test dk11(x, y) ≈ expected11 atol = 1.0e-8 rtol = 1.0e-6
+    end
+
+    @testset "2D with ARDTransform" begin
+        ℓ1, ℓ2 = 0.5, 1.2
+        k = SqExponentialKernel() ∘ ARDTransform([1 / ℓ1, 1 / ℓ2])
+        x = [0.2, 0.8]
+        y = [0.6, 0.3]
+
+        # ∂/∂y₁ (default arg=2)
+        ∂y1 = PartialDerivative((1, 0))
+        dk = ∂y1(k)
+        expected = _autodiff_partial_recursive(k, x, y, [0, 0], [1, 0])
+        @test dk(x, y) ≈ expected atol = 1.0e-8 rtol = 1.0e-6
+
+        # ∂²/∂y₁∂y₂
+        ∂y1y2 = PartialDerivative((1, 1))
+        dk12 = ∂y1y2(k)
+        expected12 = _autodiff_partial_recursive(k, x, y, [0, 0], [1, 1])
+        @test dk12(x, y) ≈ expected12 atol = 1.0e-8 rtol = 1.0e-6
+
+        # Higher order: ∂³/∂y₁²∂y₂
+        ∂y1y1y2 = PartialDerivative((2, 1))
+        dk112 = ∂y1y1y2(k)
+        expected112 = _autodiff_partial_recursive(k, x, y, [0, 0], [2, 1])
+        @test dk112(x, y) ≈ expected112 atol = 1.0e-7 rtol = 1.0e-5
+    end
+
+    @testset "3D" begin
+        k = SqExponentialKernel()
+        x = [0.1, 0.4, 0.7]
+        y = [0.3, 0.2, 0.9]
+
+        # ∂/∂y₃ (default arg=2)
+        ∂y3 = PartialDerivative((0, 0, 1))
+        dk = ∂y3(k)
+        @test dk isa KernelTensorProduct
+        @test length(dk.kernels) == 3
+        expected = _autodiff_partial_recursive(k, x, y, [0, 0, 0], [0, 0, 1])
+        @test dk(x, y) ≈ expected atol = 1.0e-8 rtol = 1.0e-6
+
+        # ∂²/∂y₁∂y₃
+        ∂y1y3 = PartialDerivative((1, 0, 1))
+        dk13 = ∂y1y3(k)
+        expected13 = _autodiff_partial_recursive(k, x, y, [0, 0, 0], [1, 0, 1])
+        @test dk13(x, y) ≈ expected13 atol = 1.0e-8 rtol = 1.0e-6
+    end
 end
