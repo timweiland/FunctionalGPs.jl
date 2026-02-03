@@ -17,6 +17,7 @@ makedocs(;
         "API Reference" => [
             "Functionals" => "api/functionals.md",
             "Kernels" => "api/kernels.md",
+            "Domains" => "api/domains.md",
         ],
     ],
     warnonly = true,

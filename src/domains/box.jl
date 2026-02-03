@@ -1,5 +1,33 @@
 export BoxDomain, volume, uniform_grid_n, uniform_grid_step
 
+"""
+    BoxDomain{T<:Real} <: Domain
+
+An N-dimensional hyperrectangular (box) domain defined by per-dimension bounds.
+
+# Constructors
+```julia
+BoxDomain((lower₁, upper₁), (lower₂, upper₂), ...)  # from tuples
+BoxDomain(Interval(a, b), Interval(c, d), ...)      # from Intervals
+```
+
+# Examples
+```julia
+julia> box = BoxDomain((0.0, 1.0), (0.0, 2.0))
+BoxDomain{Float64}(((0.0, 1.0), (0.0, 2.0)))
+
+julia> [0.5, 1.0] in box
+true
+
+julia> volume(box)
+2.0
+
+julia> ndims(box)
+2
+```
+
+See also: [`Interval`](@ref), [`uniform_grid_n`](@ref), [`FactorizedGrid`](@ref).
+"""
 struct BoxDomain{T <: Real} <: Domain
     bounds::Tuple{Tuple{T, T}, Vararg{Tuple{T, T}}}
 
@@ -27,6 +55,20 @@ function Base.in(x::AbstractVector, box::BoxDomain)
     return all(lower <= x[i] <= upper for (i, (lower, upper)) in enumerate(box.bounds))
 end
 
+"""
+    uniform_grid_n(box::BoxDomain, N₁::Int, N₂::Int, ...)
+
+Create a [`FactorizedGrid`](@ref) over `box` with `Nᵢ` points along dimension `i`.
+
+# Examples
+```julia
+julia> box = BoxDomain((0.0, 1.0), (0.0, 2.0))
+julia> grid = uniform_grid_n(box, 3, 5)
+FactorizedGrid((3, 5))
+```
+
+See also: [`uniform_grid_step`](@ref), [`FactorizedGrid`](@ref).
+"""
 function uniform_grid_n(box::BoxDomain, Ns::Int...)
     ranges = [
         range(lower; stop = upper, length = N) for
@@ -35,6 +77,20 @@ function uniform_grid_n(box::BoxDomain, Ns::Int...)
     return FactorizedGrid(ranges...)
 end
 
+"""
+    uniform_grid_step(box::BoxDomain, step₁::Real, step₂::Real, ...)
+
+Create a [`FactorizedGrid`](@ref) over `box` with spacing `stepᵢ` along dimension `i`.
+
+# Examples
+```julia
+julia> box = BoxDomain((0.0, 1.0), (0.0, 1.0))
+julia> grid = uniform_grid_step(box, 0.5, 0.25)
+FactorizedGrid((3, 5))
+```
+
+See also: [`uniform_grid_n`](@ref), [`FactorizedGrid`](@ref).
+"""
 function uniform_grid_step(box::BoxDomain, steps::Real...)
     ranges = [
         range(lower; stop = upper, step = step) for
