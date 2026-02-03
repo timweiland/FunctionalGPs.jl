@@ -1,6 +1,6 @@
 import KernelFunctions: kernelmatrix
 
-export AbstractScaledPVCrosscov, ConstantScaledPVCrosscov
+export AbstractScaledPVCrosscov, ConstantScaledPVCrosscov, scale, pv_crosscov
 
 """
     AbstractScaledPVCrosscov <: ProcessVectorCrossCovariance
