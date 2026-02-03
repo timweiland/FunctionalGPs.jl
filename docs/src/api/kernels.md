@@ -56,24 +56,3 @@ CompactPolynomialKernel
 CompactSignedPolynomialKernel
 ```
 
-## Kernel Traits
-
-The trait system enables automatic dispatch to optimized algorithms (Toeplitz, sparse, etc.) based on kernel structure.
-
-```@docs
-KernelStructureTrait
-GenericKernelTrait
-StationaryKernelTrait
-SignedStationaryKernelTrait
-kernel_structure
-```
-
-## Covariance Assembly Functions
-
-These functions assemble covariance matrices from kernels and functionals, dispatching on kernel traits for optimal performance.
-
-```@docs
-kernel_evaluate_evaluate
-kernel_integrate_integrate
-kernel_integrate_evaluate
-```
