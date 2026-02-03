@@ -20,6 +20,7 @@ makedocs(;
             "Kernels" => "api/kernels.md",
             "Domains" => "api/domains.md",
             "Cross-Covariance" => "api/crosscov.md",
+            "GP Conditioning" => "api/gps.md",
         ],
     ],
     warnonly = true,
