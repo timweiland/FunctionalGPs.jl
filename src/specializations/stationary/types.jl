@@ -1,6 +1,6 @@
 import KernelFunctions: Kernel
 
-export radial_antiderivative
+export radial_antiderivative, StationaryKernelSpec, SignedStationaryKernelSpec, stationary_kernel_spec
 
 """
     radial_antiderivative(k, ::Val{N})
