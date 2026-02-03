@@ -1,6 +1,13 @@
 # Stationary kernel specifications for efficient matrix computation
 # (kernel evaluation methods are in kernels/matern.jl)
 
+"""
+    stationary_kernel_spec(k::HalfIntegerMaternKernel{P}, ::Type{T})
+
+Return a `StationaryKernelSpec` for efficient lazy matrix construction with a
+half-integer Matérn kernel. The radial map evaluates the exponential-polynomial
+form at scaled distances.
+"""
 function stationary_kernel_spec(
         k::HalfIntegerMaternKernel{P},
         ::Type{T},
@@ -16,6 +23,13 @@ function stationary_kernel_spec(
     return StationaryKernelSpec(scales, radial_map)
 end
 
+"""
+    stationary_kernel_spec(k::HalfIntegerMaternDerivativeOddKernel, ::Type{T})
+
+Return a `SignedStationaryKernelSpec` for odd-order derivatives of half-integer
+Matérn kernels. The signed map accounts for the antisymmetric structure
+introduced by odd total derivative order.
+"""
 function stationary_kernel_spec(
         k::HalfIntegerMaternDerivativeOddKernel,
         ::Type{T},
@@ -32,6 +46,13 @@ function stationary_kernel_spec(
     return SignedStationaryKernelSpec(base_spec.scales, signed_map)
 end
 
+"""
+    stationary_kernel_spec(k::HalfIntegerMaternDerivativeEvenKernel, ::Type{T})
+
+Return a `StationaryKernelSpec` for even-order derivatives of half-integer
+Matérn kernels. Even total derivative order preserves the symmetric radial
+structure.
+"""
 function stationary_kernel_spec(
         k::HalfIntegerMaternDerivativeEvenKernel,
         ::Type{T},

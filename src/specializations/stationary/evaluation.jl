@@ -1,6 +1,16 @@
 import KernelFunctions: kernelmatrix
 import ToeplitzMatrices: SymmetricToeplitz
 
+"""
+    kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X::AbstractRange)
+
+Construct a symmetric Toeplitz covariance matrix for a stationary kernel evaluated
+on a uniformly spaced range. Exploits the constant spacing to avoid redundant
+kernel evaluations.
+
+Returns a `SymmetricToeplitz` matrix when the kernel supports stationary
+specialization; otherwise falls back to `kernelmatrix`.
+"""
 function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X::AbstractRange)
     first_point = first(X)
     step = Base.step(X)
@@ -20,6 +30,16 @@ function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X::Abstrac
     return SymmetricToeplitz(coeffs)
 end
 
+"""
+    kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X)
+
+Construct a lazy `StationaryKernelMatrix` for a stationary kernel evaluated at
+arbitrary point coordinates. The matrix computes entries on-demand using scaled
+squared distances.
+
+Falls back to `kernelmatrix` if the input cannot be converted to stationary
+coordinates or the kernel does not provide a stationary specification.
+"""
 function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X)
     coords = _stationary_coordinates(X)
     coords === nothing && return kernelmatrix(k, X)
@@ -30,6 +50,13 @@ function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X)
     return StationaryKernelMatrix(coords, spec.radial_map; scales = spec.scales)
 end
 
+"""
+    kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X_left, X_right)
+
+Construct a lazy `StationaryKernelMatrix` representing the cross-covariance between
+two sets of points for a stationary kernel. Uses the kernel's radial map on scaled
+squared distances.
+"""
 function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X_left, X_right)
     coords_left = _stationary_coordinates(X_left)
     coords_right = _stationary_coordinates(X_right)
@@ -49,6 +76,13 @@ function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X_left, X_
     return StationaryKernelMatrix(coords_left, coords_right, spec.radial_map; scales = spec.scales)
 end
 
+"""
+    kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X)
+
+Construct a lazy `SignedStationaryKernelMatrix` for kernels with signed-stationary
+structure (e.g., odd-order derivative kernels). The kernel value depends on both
+the squared distance and the sign of the coordinate difference.
+"""
 function kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X)
     coords = _stationary_coordinates(X)
     coords === nothing && return kernelmatrix(k, X)
@@ -60,6 +94,12 @@ function kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X)
     return SignedStationaryKernelMatrix(coords, spec.signed_map; scales = spec.scales)
 end
 
+"""
+    kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X_left, X_right)
+
+Construct a lazy `SignedStationaryKernelMatrix` for cross-covariance between two
+point sets using a signed-stationary kernel.
+"""
 function kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X_left, X_right)
     coords_left = _stationary_coordinates(X_left)
     coords_right = _stationary_coordinates(X_right)
