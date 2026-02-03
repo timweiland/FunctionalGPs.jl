@@ -18,6 +18,28 @@ export LinearConditionalGP,
     predictive_residual
 export mean, cov
 
+"""
+    LinearConditionalGP <: AbstractGP
+
+A Gaussian process conditioned on linear observations.
+
+This type represents a GP posterior after conditioning on one or more `LinearObservation`s.
+It stores the prior GP and all observation data needed for efficient posterior inference.
+
+Use [`condition_on_observation`](@ref) to construct instances rather than calling the
+constructor directly.
+
+# Posterior Computations
+For a `LinearConditionalGP` `f`, you can:
+- Evaluate at points: `f(X)` returns a `FiniteGP`
+- Get posterior mean: `mean(f(X))`
+- Get posterior variance: `var(f(X))`
+- Get posterior covariance: `cov(f(X))`
+- Sample: `rand(rng, f(X), n)`
+- Apply further functionals: `ℒ(f)` returns an `MvNormal`
+
+See also: [`LinearObservation`](@ref), [`condition_on_observation`](@ref)
+"""
 struct LinearConditionalGP <: AbstractGP
     prior::AbstractGP
     observations::Tuple{Vararg{LinearObservation}}
@@ -27,10 +49,28 @@ struct LinearConditionalGP <: AbstractGP
 end
 
 ℒs(f::LinearConditionalGP) = map(o -> o.linfunc, f.observations)
+
+"""
+    εs(f::LinearConditionalGP)
+
+Return the tuple of noise distributions from all observations.
+"""
 εs(f::LinearConditionalGP) = map(o -> o.noise, f.observations)
+
+"""
+    μs(f::LinearConditionalGP)
+
+Return the tuple of noise means from all observations.
+"""
 μs(f::LinearConditionalGP) = map(mean, εs(f))
 μs_vec(f::LinearConditionalGP) = mapreduce(o -> noise_mean(o), vcat, f.observations)
 ys(f::LinearConditionalGP) = map(o -> o.y, f.observations)
+
+"""
+    y_vec(f::LinearConditionalGP)
+
+Return all observed values concatenated into a single vector.
+"""
 y_vec(f::LinearConditionalGP) = mapreduce(o -> reshape(o.y, :), vcat, f.observations)
 ℒs_mean_vec(f::LinearConditionalGP) = mapreduce(m -> reshape(m, :), vcat, f.ℒs_mean_tuple)
 function G_unblocked(f::LinearConditionalGP)
@@ -40,11 +80,77 @@ function G_unblocked(f::LinearConditionalGP)
         convert(eltype(f.G.blocks), f.G)
     end
 end
+
+"""
+    predictive_residual(f::LinearConditionalGP)
+
+Compute the predictive residual `y - ℒ(m) - μ_ε` where `y` is observed data,
+`ℒ(m)` is the prior mean evaluated through the functional, and `μ_ε` is the noise mean.
+
+This is cached (memoized) for efficiency.
+"""
 @memoize predictive_residual(f::LinearConditionalGP) =
     y_vec(f) - (ℒs_mean_vec(f) + μs_vec(f))
+
+"""
+    G_chol(f::LinearConditionalGP)
+
+Return the Cholesky factorization of the Gram matrix `G = ℒ(ℒ(k)) + Σ_ε`.
+
+This is the core matrix needed for posterior computations and is cached (memoized).
+"""
 @memoize G_chol(f::LinearConditionalGP) = cholesky(G_unblocked(f))
+
+"""
+    representer_weights(f::LinearConditionalGP)
+
+Compute the representer weights `G⁻¹(y - ℒ(m) - μ_ε)` used for posterior mean computation.
+
+The posterior mean at new points is `m(x) + k(x, ℒ) * representer_weights(f)`.
+This is cached (memoized) for efficiency.
+"""
 @memoize representer_weights(f::LinearConditionalGP) = G_chol(f) \ predictive_residual(f)
 
+"""
+    condition_on_observation(f::AbstractGP, observation::LinearObservation) -> LinearConditionalGP
+    condition_on_observation(f::AbstractGP, ℒ, y; noise=nothing) -> LinearConditionalGP
+    condition_on_observation(f::AbstractGP, X::AbstractVector, y; noise=nothing) -> LinearConditionalGP
+
+Condition a GP on observations through a linear functional.
+
+Returns a `LinearConditionalGP` representing the posterior distribution.
+
+# Methods
+- `condition_on_observation(f, obs)`: Condition on a `LinearObservation`
+- `condition_on_observation(f, ℒ, y; noise)`: Condition on `ℒ(f) = y` with optional noise
+- `condition_on_observation(f, X, y; noise)`: Shorthand for point evaluation at `X`
+
+Multiple observations can be added sequentially by calling `condition_on_observation`
+on an existing `LinearConditionalGP`.
+
+# Example
+```julia
+using FunctionalGPs, AbstractGPs
+
+k = Matern52Kernel()
+f = GP(k)
+
+# Condition on function values
+X = [0.0, 0.5, 1.0]
+y = sin.(X)
+f_post = condition_on_observation(f, X, y; noise=0.01)
+
+# Add derivative observation
+∂x = PartialDerivative((1,))
+ℒ = EvaluationFunctional([0.25]) ∘ ∂x
+f_post2 = condition_on_observation(f_post, ℒ, [0.5]; noise=1e-6)
+
+# Compute posterior at new points
+X_new = 0:0.1:1
+μ = mean(f_post2(X_new))
+σ² = var(f_post2(X_new))
+```
+"""
 function condition_on_observation(f::GP, observation::LinearObservation)
     ℒ = observation.linfunc
     G_block = ℒ(ℒ(f.kernel))
