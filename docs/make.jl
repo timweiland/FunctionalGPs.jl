@@ -1,6 +1,7 @@
 using Documenter
 using DocumenterVitepress
 using FunctionalGPs
+using KernelFunctions
 
 makedocs(;
     modules = [FunctionalGPs],
