@@ -19,6 +19,7 @@ makedocs(;
             "Functionals" => "api/functionals.md",
             "Kernels" => "api/kernels.md",
             "Domains" => "api/domains.md",
+            "Cross-Covariance" => "api/crosscov.md",
         ],
     ],
     warnonly = true,
