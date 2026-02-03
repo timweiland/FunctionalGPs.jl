@@ -2,8 +2,44 @@ import KernelFunctions: kernelmatrix
 
 export AbstractScaledPVCrosscov, ConstantScaledPVCrosscov
 
+"""
+    AbstractScaledPVCrosscov <: ProcessVectorCrossCovariance
+
+Abstract type for scaled cross-covariances.
+
+A scaled crosscov represents `α * pv` where `α` is some scaling factor
+and `pv` is a [`ProcessVectorCrossCovariance`](@ref).
+
+# Interface
+
+Subtypes must implement:
+- [`scale`](@ref): Return the scaling factor
+- `pv_crosscov`: Return the underlying crosscov
+
+# See also
+- [`ConstantScaledPVCrosscov`](@ref): Concrete implementation for constant scaling
+"""
 abstract type AbstractScaledPVCrosscov <: ProcessVectorCrossCovariance end
+
+"""
+    pv_crosscov(op::AbstractScaledPVCrosscov)
+
+Return the underlying (unscaled) cross-covariance from a scaled crosscov.
+"""
 pv_crosscov(op::AbstractScaledPVCrosscov) = op.pv_crosscov
+
+"""
+    scale(op::AbstractScaledPVCrosscov)
+
+Return the scaling factor applied to the cross-covariance.
+
+# Examples
+```julia
+julia> scaled_pv = 2.5 * pv;
+julia> scale(scaled_pv)
+2.5
+```
+"""
 scale(op::AbstractScaledPVCrosscov) = error("scale not implemented for $(typeof(op))")
 randvar_arg(op::AbstractScaledPVCrosscov) = randvar_arg(pv_crosscov(op))
 randvar_batch_size(op::AbstractScaledPVCrosscov) = randvar_batch_size(pv_crosscov(op))
@@ -20,6 +56,32 @@ function kernelmatrix(op::AbstractScaledPVCrosscov, x::AbstractVector)
     return scale(op) * kernelmatrix(op.pv_crosscov, x)
 end
 
+"""
+    ConstantScaledPVCrosscov <: AbstractScaledPVCrosscov
+
+A cross-covariance multiplied by a constant scalar.
+
+Created automatically when multiplying a [`ProcessVectorCrossCovariance`](@ref) by a number.
+
+# Fields
+- `pv_crosscov`: The underlying cross-covariance
+- `scalar`: The scaling constant
+
+# Examples
+```julia
+julia> k = SqExponentialKernel();
+julia> pv = EvaluationFunctional([0.0, 1.0])(k);
+julia> scaled = 3.0 * pv;
+julia> typeof(scaled)
+ConstantScaledPVCrosscov
+julia> scale(scaled)
+3.0
+```
+
+# See also
+- [`scale`](@ref): Extract the scalar
+- [`pv_crosscov`](@ref): Extract the underlying crosscov
+"""
 struct ConstantScaledPVCrosscov <: AbstractScaledPVCrosscov
     pv_crosscov::ProcessVectorCrossCovariance
     scalar::Number

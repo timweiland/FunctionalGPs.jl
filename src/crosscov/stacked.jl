@@ -1,6 +1,40 @@
 export StackedPVCrosscov
 using BlockArrays
 
+"""
+    StackedPVCrosscov{T} <: ProcessVectorCrossCovariance
+
+A cross-covariance formed by vertically stacking multiple PV crosscovs.
+
+Use this to combine multiple functionals applied to the same kernel argument,
+producing a block-structured random vector.
+
+# Fields
+- `pv_crosscovs::Vector{T}`: The crosscovs to stack
+
+# Construction
+
+Typically created via the union operator `∪` on vectors of crosscovs:
+
+```julia
+pv_stacked = [pv1, pv2] ∪ [pv3]
+```
+
+Or by applying a [`StackedLinearFunctional`](@ref) to a kernel.
+
+# Examples
+```julia
+julia> k = SqExponentialKernel();
+julia> pv1 = EvaluationFunctional([0.0, 0.5])(k);
+julia> pv2 = EvaluationFunctional([1.0, 1.5, 2.0])(k);
+julia> stacked = StackedPVCrosscov([pv1, pv2]);
+julia> randvar_length(stacked)
+5
+```
+
+# See also
+- [`StackedLinearFunctional`](@ref): Functional that creates stacked crosscovs
+"""
 struct StackedPVCrosscov{T <: ProcessVectorCrossCovariance} <: ProcessVectorCrossCovariance
     pv_crosscovs::Vector{T}
 
