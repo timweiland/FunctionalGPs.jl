@@ -24,6 +24,7 @@ include("kernels/test_wendland.jl")
 include("kernels/test_compact_kernelmatrix.jl")
 include("kernels/test_matern_derivative.jl")
 include("kernels/test_tensor_product_traits.jl")
+include("kernels/test_squared_exponential.jl")
 
 # === Matrices ===
 include("matrices/test_khatri_rao.jl")
@@ -33,6 +34,7 @@ include("crosscov/test_scale.jl")
 include("crosscov/test_tensor_product.jl")
 include("crosscov/test_wendland_integrals.jl")
 include("crosscov/test_radial_integrals.jl")
+include("crosscov/test_se_integrals.jl")
 
 # === Operators ===
 include("operators/test_concatenate.jl")
