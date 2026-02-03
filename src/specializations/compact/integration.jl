@@ -1,10 +1,25 @@
 import NearestNeighbors: BallTree, inrange
 
+"""
+    radial_antiderivative(k::CompactPolynomialKernel, ::Val{1})
+
+Compute the first radial antiderivative of a compact polynomial kernel. Used for
+one-sided integration (integrate-evaluate operations). Returns a function that
+evaluates the antiderivative at a normalized radial distance `r`, clamped to the
+support `[0, 1]`.
+"""
 function radial_antiderivative(k::CompactPolynomialKernel, ::Val{1})
     poly_int = Polynomials.integrate(k.poly)
     return (r) -> poly_int(min(r, 1.0))
 end
 
+"""
+    radial_antiderivative(k::CompactPolynomialKernel, ::Val{2})
+
+Compute the second radial antiderivative of a compact polynomial kernel. Used for
+two-sided integration (integrate-integrate operations). For `r > 1`, the function
+extends linearly beyond the support boundary.
+"""
 function radial_antiderivative(k::CompactPolynomialKernel, ::Val{2})
     poly_int = Polynomials.integrate(k.poly)
     poly_int2 = Polynomials.integrate(poly_int)
@@ -14,7 +29,15 @@ function radial_antiderivative(k::CompactPolynomialKernel, ::Val{2})
     )
 end
 
-# Integration support for compact kernels using sparse matrices
+"""
+    kernel_integrate_integrate(::StationaryKernelTrait, k::CompactPolynomialKernel, domains1, domains2)
+
+Compute a sparse covariance matrix for two-sided integration of a compact
+polynomial kernel. Uses `BallTree` spatial indexing to efficiently find
+potentially interacting domain pairs, exploiting the kernel's compact support.
+
+Returns a `SparseMatrixCSC` where entry `[i,j]` is `Cov(∫_{domains1[i]} k, ∫_{domains2[j]} k)`.
+"""
 function kernel_integrate_integrate(::StationaryKernelTrait, k::CompactPolynomialKernel, domains1, domains2)
     anti = radial_antiderivative(k, Val(2))
     ℓ = k.lengthscales
@@ -51,6 +74,15 @@ function kernel_integrate_integrate(::StationaryKernelTrait, k::CompactPolynomia
     return sparse(I, J, V, Base.length(lower_bounds1), Base.length(lower_bounds2))
 end
 
+"""
+    kernel_integrate_evaluate(::StationaryKernelTrait, k::CompactPolynomialKernel, domains, X)
+
+Compute a sparse covariance matrix for one-sided integration of a compact
+polynomial kernel (integrate over domains, evaluate at points). Uses `BallTree`
+spatial indexing for efficient neighbor search.
+
+Returns a `SparseMatrixCSC` where entry `[i,j]` is `Cov(∫_{domains[i]} k, k(X[j]))`.
+"""
 function kernel_integrate_evaluate(::StationaryKernelTrait, k::CompactPolynomialKernel, domains, X::AbstractVector)
     anti = radial_antiderivative(k, Val(1))
     ℓ = k.lengthscales

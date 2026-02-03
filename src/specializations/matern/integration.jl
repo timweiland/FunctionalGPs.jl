@@ -1,9 +1,26 @@
+"""
+    kernelmatrix(k::HalfIntegerMaternKernel, x, y)
+
+Compute the kernel matrix for a half-integer Matérn kernel using efficient
+pairwise distance computation. Evaluates the exponential-polynomial form
+`exp(-ρr) * p(ρr)` at each distance.
+"""
 function kernelmatrix(k::HalfIntegerMaternKernel, x::AbstractVector, y::AbstractVector)
     K = pairwise(k.dist, x, y)
     K .= _exp_poly.(Ref(k), K)
     return K
 end
 
+"""
+    radial_antiderivative(k::HalfIntegerMaternKernel{P}, ::Val{1})
+
+Compute the first radial antiderivative of a half-integer Matérn kernel. Used
+for one-sided integration (integrate-evaluate operations). Returns a closed-form
+function in terms of exponential-polynomial expressions.
+
+The antiderivative has the form: `C₁ - (1/√(2ν+1)) * exp(-√(2ν+1)*r) * q(√(2ν+1)*r)`
+where `q` is a polynomial derived from the kernel's base polynomial.
+"""
 function radial_antiderivative(k::HalfIntegerMaternKernel{P}, ::Val{1}) where {P}
     sqrt_2nu = sqrt(2 * P + 1)
     neg_inv_sqrt_2nu = -(1.0 / sqrt_2nu)
@@ -24,6 +41,16 @@ function radial_antiderivative(k::HalfIntegerMaternKernel{P}, ::Val{1}) where {P
     return r -> neg_inv_sqrt_2nu * exp(-sqrt_2nu * r) * poly(sqrt_2nu * r) + C1
 end
 
+"""
+    radial_antiderivative(k::HalfIntegerMaternKernel{P}, ::Val{2})
+
+Compute the second radial antiderivative of a half-integer Matérn kernel. Used
+for two-sided integration (integrate-integrate operations). Returns a closed-form
+function combining exponential-polynomial terms with a linear component.
+
+The antiderivative has the form: `C₂ + C₁*r + (1/(2ν+1)) * exp(-√(2ν+1)*r) * q₂(√(2ν+1)*r)`
+where `q₂` is derived from weighted sums of the base polynomial's derivatives.
+"""
 function radial_antiderivative(k::HalfIntegerMaternKernel{P}, ::Val{2}) where {P}
     sqrt_2nu = sqrt(2 * P + 1)
     inv_2nu = 1 / (2 * P + 1)

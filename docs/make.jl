@@ -21,6 +21,7 @@ makedocs(;
             "Domains" => "api/domains.md",
             "Cross-Covariance" => "api/crosscov.md",
             "GP Conditioning" => "api/gps.md",
+            "Specializations" => "api/specializations.md",
         ],
     ],
     warnonly = true,

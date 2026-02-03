@@ -1,4 +1,10 @@
-# Helper functions for integration
+"""
+    _interval_bounds_matrices(domains, ::Type{T})
+
+Extract lower and upper bounds from a collection of interval domains into
+separate `(n, 1)` matrices of type `T`. Used internally for constructing
+integration matrices.
+"""
 function _interval_bounds_matrices(domains, ::Type{T}) where {T <: AbstractFloat}
     n = length(domains)
     lowers = Matrix{T}(undef, n, 1)
@@ -13,7 +19,16 @@ end
 
 _extract_lengthscale(ℓ) = only(ℓ)
 
-# Stationary kernel integration: integrate-integrate
+"""
+    kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains1, domains2)
+
+Compute the covariance matrix for two-sided integration of a stationary kernel
+over 1D interval domains. Uses the kernel's second radial antiderivative
+(`radial_antiderivative(k, Val(2))`) to construct a lazy matrix as a sum of
+`StationaryKernelMatrix` terms.
+
+The result represents `Cov(∫_{domains1[i]} k, ∫_{domains2[j]} k)`.
+"""
 function kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains1, domains2)
     # Validation
     ℓ_val = _extract_lengthscale(k.lengthscales)
@@ -54,13 +69,27 @@ function kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains1
     return ApplyArray(+, term_bc, term_ac, term_bd, term_ad)
 end
 
-# Specialized symmetric version for efficiency
+"""
+    kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains)
+
+Symmetric version of two-sided integration where both sides use the same domains.
+Delegates to the two-argument form.
+"""
 function kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains)
     # Delegate to two-domain version
     return kernel_integrate_integrate(StationaryKernelTrait(), k, domains, domains)
 end
 
-# Stationary kernel integration: integrate-evaluate (uses SignedStationaryKernelMatrix)
+"""
+    kernel_integrate_evaluate(::StationaryKernelTrait, k::Kernel, domains, X)
+
+Compute the covariance matrix for one-sided integration (integrate over domains,
+evaluate at points). Uses the kernel's first radial antiderivative
+(`radial_antiderivative(k, Val(1))`) and returns a lazy matrix via
+`SignedStationaryKernelMatrix`.
+
+The result represents `Cov(∫_{domains[i]} k, k(X[j]))`.
+"""
 function kernel_integrate_evaluate(::StationaryKernelTrait, k::Kernel, domains, X::AbstractVector)
     isempty(domains) && return Matrix{Float64}(undef, 0, length(X))
 
