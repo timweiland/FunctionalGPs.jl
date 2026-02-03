@@ -8,3 +8,4 @@
 include("stationary/stationary.jl")
 include("compact/compact.jl")
 include("matern/matern.jl")
+include("squared_exponential/squared_exponential.jl")

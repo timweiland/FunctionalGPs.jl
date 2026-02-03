@@ -19,6 +19,10 @@ end
 
 _extract_lengthscale(ℓ) = only(ℓ)
 
+# Dispatchable accessor for kernel lengthscales
+# Override this for kernels that don't have a .lengthscales field
+_kernel_lengthscales(k) = k.lengthscales
+
 """
     kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains1, domains2)
 
@@ -31,7 +35,7 @@ The result represents `Cov(∫_{domains1[i]} k, ∫_{domains2[j]} k)`.
 """
 function kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains1, domains2)
     # Validation
-    ℓ_val = _extract_lengthscale(k.lengthscales)
+    ℓ_val = _extract_lengthscale(_kernel_lengthscales(k))
     ℓ_val isa Number || error("Stationary 1D integration requires scalar lengthscale")
 
     # Type promotion
@@ -100,7 +104,7 @@ function kernel_integrate_evaluate(::StationaryKernelTrait, k::Kernel, domains, 
     T = float(base_type)
     T <: AbstractFloat || error("Require float type for integration")
 
-    ℓ_val = _extract_lengthscale(k.lengthscales)
+    ℓ_val = _extract_lengthscale(_kernel_lengthscales(k))
     ℓ_val isa Number || error("Require scalar lengthscale for 1D integration")
 
     # Get radial antiderivative for one-sided integration
