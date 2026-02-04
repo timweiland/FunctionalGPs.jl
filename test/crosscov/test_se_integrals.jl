@@ -1,6 +1,7 @@
 using FiniteDifferences: central_fdm
 using QuadGK: quadgk
-using KernelFunctions: SqExponentialKernel, ScaleTransform
+using KernelFunctions: SqExponentialKernel, ScaleTransform, ARDTransform
+using Kronecker: kronecker
 
 # ============================================================================
 # Radial antiderivative tests
@@ -150,5 +151,106 @@ end
             )
             @test lazy[i, i] ≈ expected rtol = 1.0e-5 atol = 1.0e-9
         end
+    end
+end
+
+# ============================================================================
+# Multi-dimensional (box domain) integral tests
+# ============================================================================
+
+@testset "SE multi-D box integrals" begin
+    @testset "2D unit scale" begin
+        k = SqExponentialKernel()
+
+        # Create factorized box domains
+        intervals1 = [Interval(0.0, 0.3), Interval(0.4, 0.7)]
+        intervals2 = [Interval(0.1, 0.4), Interval(0.5, 0.8), Interval(0.2, 0.5)]
+        box_domains = intervals1 ⊗ intervals2
+
+        ∫_box = VectorizedLebesgueIntegral(box_domains)
+
+        @testset "One-sided (integral-evaluate) structure" begin
+            k∫ = ∫_box(k)
+            @test k∫ isa TensorProductCrosscov{2}
+
+            # Should decompose into 1D integrals
+            ∫₁ = VectorizedLebesgueIntegral(intervals1)
+            ∫₂ = VectorizedLebesgueIntegral(intervals2)
+            k1 = SqExponentialKernel()
+            k2 = SqExponentialKernel()
+
+            @test k∫.factors[1] == ∫₁(k1)
+            @test k∫.factors[2] == ∫₂(k2)
+        end
+
+        @testset "Two-sided (integral-integral) structure" begin
+            k∫ = ∫_box(k)
+            ∫k∫ = ∫_box(k∫)
+
+            # Should be Kronecker product of 1D integral-integral matrices
+            ∫₁ = VectorizedLebesgueIntegral(intervals1)
+            ∫₂ = VectorizedLebesgueIntegral(intervals2)
+            k1 = SqExponentialKernel()
+            k2 = SqExponentialKernel()
+
+            ∫₁k1∫₁ = ∫₁(∫₁(k1))
+            ∫₂k2∫₂ = ∫₂(∫₂(k2))
+
+            @test ∫k∫ ≈ kronecker(∫₂k2∫₂, ∫₁k1∫₁)
+        end
+    end
+
+    @testset "2D with ARDTransform" begin
+        ℓ1, ℓ2 = 0.5, 0.8
+        k = SqExponentialKernel() ∘ ARDTransform([1 / ℓ1, 1 / ℓ2])
+
+        intervals1 = [Interval(0.0, 0.2), Interval(0.3, 0.5)]
+        intervals2 = [Interval(0.1, 0.3), Interval(0.4, 0.6)]
+        box_domains = intervals1 ⊗ intervals2
+
+        ∫_box = VectorizedLebesgueIntegral(box_domains)
+
+        k∫ = ∫_box(k)
+        @test k∫ isa TensorProductCrosscov{2}
+
+        # Verify Kronecker structure
+        ∫k∫ = ∫_box(k∫)
+
+        ∫₁ = VectorizedLebesgueIntegral(intervals1)
+        ∫₂ = VectorizedLebesgueIntegral(intervals2)
+        k1 = SqExponentialKernel() ∘ ScaleTransform(1 / ℓ1)
+        k2 = SqExponentialKernel() ∘ ScaleTransform(1 / ℓ2)
+
+        ∫₁k1∫₁ = ∫₁(∫₁(k1))
+        ∫₂k2∫₂ = ∫₂(∫₂(k2))
+
+        @test ∫k∫ ≈ kronecker(∫₂k2∫₂, ∫₁k1∫₁)
+    end
+
+    @testset "2D with ScaleTransform (isotropic)" begin
+        ℓ = 0.6
+        k = SqExponentialKernel() ∘ ScaleTransform(1 / ℓ)
+
+        intervals1 = [Interval(0.0, 0.25), Interval(0.3, 0.55)]
+        intervals2 = [Interval(0.1, 0.35), Interval(0.4, 0.65)]
+        box_domains = intervals1 ⊗ intervals2
+
+        ∫_box = VectorizedLebesgueIntegral(box_domains)
+
+        k∫ = ∫_box(k)
+        @test k∫ isa TensorProductCrosscov{2}
+
+        # Verify Kronecker structure
+        ∫k∫ = ∫_box(k∫)
+
+        ∫₁ = VectorizedLebesgueIntegral(intervals1)
+        ∫₂ = VectorizedLebesgueIntegral(intervals2)
+        k1 = SqExponentialKernel() ∘ ScaleTransform(1 / ℓ)
+        k2 = SqExponentialKernel() ∘ ScaleTransform(1 / ℓ)
+
+        ∫₁k1∫₁ = ∫₁(∫₁(k1))
+        ∫₂k2∫₂ = ∫₂(∫₂(k2))
+
+        @test ∫k∫ ≈ kronecker(∫₂k2∫₂, ∫₁k1∫₁)
     end
 end

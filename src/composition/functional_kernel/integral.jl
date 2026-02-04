@@ -100,3 +100,36 @@ function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
     ) where {T}
     return box_integrals(k, ℒ.domains; arg = arg)
 end
+
+########### Squared Exponential multi-D integration support ###########
+# SE kernels have tensor product structure, so multi-D box integrals
+# decompose into products of 1D integrals.
+
+using KernelFunctions: SqExponentialKernel, TransformedKernel, ScaleTransform, ARDTransform
+
+function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
+        k::SqExponentialKernel;
+        arg = 2,
+    ) where {T}
+    M = ndims(ℒ.domains)
+    k_tensor = _to_tensor_product(k, M)
+    return box_integrals(k_tensor, ℒ.domains; arg = arg)
+end
+
+function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
+        k::TransformedKernel{<:SqExponentialKernel, <:ScaleTransform};
+        arg = 2,
+    ) where {T}
+    M = ndims(ℒ.domains)
+    k_tensor = _to_tensor_product(k, M)
+    return box_integrals(k_tensor, ℒ.domains; arg = arg)
+end
+
+function (ℒ::VectorizedLebesgueIntegral{BoxDomain{T}})(
+        k::TransformedKernel{<:SqExponentialKernel, <:ARDTransform};
+        arg = 2,
+    ) where {T}
+    M = ndims(ℒ.domains)
+    k_tensor = _to_tensor_product(k, M)
+    return box_integrals(k_tensor, ℒ.domains; arg = arg)
+end
