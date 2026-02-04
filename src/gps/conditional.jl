@@ -75,10 +75,12 @@ y_vec(f::LinearConditionalGP) = mapreduce(o -> reshape(o.y, :), vcat, f.observat
 ℒs_mean_vec(f::LinearConditionalGP) = mapreduce(m -> reshape(m, :), vcat, f.ℒs_mean_tuple)
 function G_unblocked(f::LinearConditionalGP)
     if length(f.G.blocks) == 1
-        return f.G.blocks[1, 1]
+        G = f.G.blocks[1, 1]
     else
-        convert(eltype(f.G.blocks), f.G)
+        G = convert(eltype(f.G.blocks), f.G)
     end
+    # Ensure symmetry for Cholesky factorization
+    return Symmetric(G)
 end
 
 """
