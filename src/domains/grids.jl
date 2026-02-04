@@ -1,4 +1,4 @@
-import KernelFunctions: KernelTensorProduct, kernelmatrix, kernelmatrix_diag
+import KernelFunctions: KernelTensorProduct, kernelmatrix, kernelmatrix_diag, ColVecs
 
 export FactorizedGrid, kernelmatrix, kernelmatrix_diag
 
@@ -85,6 +85,34 @@ function kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid, y::FactorizedGr
     return reduce(kronecker, reverse(Tuple(Ks)))
 end
 kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid) = kernelmatrix(k, x, x)
+
+# Mixed case: FactorizedGrid with ColVecs or other AbstractVector
+# Convert FactorizedGrid to ColVecs for compatibility
+function _grid_to_colvecs(grid::FactorizedGrid)
+    # convert(Array, grid) returns shape (n1, n2, ..., d) where d is dimension count
+    arr = convert(Array, grid)
+    d = length(grid.ranges)
+    n_total = prod(size(grid))
+    # Move last axis (d) to first position: (n1, n2, ..., d) -> (d, n1, n2, ...)
+    arr_permuted = permutedims(arr, (ndims(arr), 1:(ndims(arr) - 1)...))
+    # Reshape to (d, n_total) - column-major order gives same ordering as vector-of-vectors
+    return ColVecs(reshape(arr_permuted, d, n_total))
+end
+
+function kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid, y::ColVecs)
+    return kernelmatrix(k, _grid_to_colvecs(x), y)
+end
+
+function kernelmatrix(k::KernelTensorProduct, x::ColVecs, y::FactorizedGrid)
+    return kernelmatrix(k, x, _grid_to_colvecs(y))
+end
+
+# kernelmatrix_diag for vector-of-vectors: convert to ColVecs
+# Note: exclude ColVecs and RowVecs to avoid infinite recursion
+function kernelmatrix_diag(k::KernelTensorProduct, x::Vector{<:AbstractVector})
+    x_mat = reduce(hcat, x)
+    return kernelmatrix_diag(k, ColVecs(x_mat))
+end
 
 """
     kernelmatrix_diag(k::KernelTensorProduct, x::FactorizedGrid)

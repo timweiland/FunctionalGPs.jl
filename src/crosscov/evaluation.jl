@@ -1,4 +1,4 @@
-using KernelFunctions: Kernel
+using KernelFunctions: Kernel, KernelTensorProduct, ColVecs
 
 export EvaluationPVCrosscov
 
@@ -49,6 +49,37 @@ kernelmatrix(pv::EvaluationPVCrosscov{1}, X::AbstractVector) =
     kernelmatrix(pv.k, pv.linfunc.X, X)
 kernelmatrix(pv::EvaluationPVCrosscov{2}, X::AbstractVector) =
     kernelmatrix(pv.k, X, pv.linfunc.X)
+
+# KernelTensorProduct with vector-of-vectors: convert to ColVecs
+function kernelmatrix(
+        pv::EvaluationPVCrosscov{1, <:KernelTensorProduct},
+        X::AbstractVector{<:AbstractVector},
+    )
+    obs_mat = reduce(hcat, pv.linfunc.X)
+    x_mat = reduce(hcat, X)
+    return kernelmatrix(pv.k, ColVecs(obs_mat), ColVecs(x_mat))
+end
+
+function kernelmatrix(
+        pv::EvaluationPVCrosscov{2, <:KernelTensorProduct},
+        X::AbstractVector{<:AbstractVector},
+    )
+    obs_mat = reduce(hcat, pv.linfunc.X)
+    x_mat = reduce(hcat, X)
+    return kernelmatrix(pv.k, ColVecs(x_mat), ColVecs(obs_mat))
+end
+
+# FactorizedGrid with KernelTensorProduct and vector-of-vectors observation points
+# Convert observation points to ColVecs for KernelFunctions compatibility
+function kernelmatrix(pv::EvaluationPVCrosscov{1, <:KernelTensorProduct}, X::FactorizedGrid)
+    obs_mat = reduce(hcat, pv.linfunc.X)  # Convert to d × n matrix
+    return kernelmatrix(pv.k, ColVecs(obs_mat), X)
+end
+
+function kernelmatrix(pv::EvaluationPVCrosscov{2, <:KernelTensorProduct}, X::FactorizedGrid)
+    obs_mat = reduce(hcat, pv.linfunc.X)  # Convert to d × n matrix
+    return kernelmatrix(pv.k, X, ColVecs(obs_mat))
+end
 
 function Base.isequal(pv1::EvaluationPVCrosscov, pv2::EvaluationPVCrosscov)
     return pv1.k == pv2.k && pv1.linfunc == pv2.linfunc && pv1.eval_arg == pv2.eval_arg
