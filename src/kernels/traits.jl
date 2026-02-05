@@ -1,4 +1,4 @@
-import KernelFunctions: Kernel, kernelmatrix, KernelTensorProduct, ColVecs
+import KernelFunctions: Kernel, kernelmatrix, KernelTensorProduct
 
 export KernelStructureTrait,
     GenericKernelTrait,
@@ -106,8 +106,7 @@ function kernel_evaluate_evaluate(
         k::KernelTensorProduct,
         X::AbstractVector{<:AbstractVector},
     )
-    X_mat = reduce(hcat, X)  # Convert to matrix (d × n)
-    return kernelmatrix(k, ColVecs(X_mat))
+    return kernelmatrix(k, _to_colvecs(X))
 end
 
 function kernel_evaluate_evaluate(
@@ -116,9 +115,7 @@ function kernel_evaluate_evaluate(
         X_left::AbstractVector{<:AbstractVector},
         X_right::AbstractVector{<:AbstractVector},
     )
-    X_left_mat = reduce(hcat, X_left)
-    X_right_mat = reduce(hcat, X_right)
-    return kernelmatrix(k, ColVecs(X_left_mat), ColVecs(X_right_mat))
+    return kernelmatrix(k, _to_colvecs(X_left), _to_colvecs(X_right))
 end
 
 """

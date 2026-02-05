@@ -23,6 +23,7 @@ include("domains/test_factorized_box.jl")
 include("kernels/test_wendland.jl")
 include("kernels/test_compact_kernelmatrix.jl")
 include("kernels/test_matern_derivative.jl")
+include("kernels/test_tensor_product_traits.jl")
 
 # === Crosscov ===
 include("crosscov/test_scale.jl")

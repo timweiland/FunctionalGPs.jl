@@ -1,3 +1,5 @@
+import KernelFunctions: ColVecs
+
 export moveaxis, reshape_product_broadcast
 
 function moveaxis(A::AbstractArray, source::Int, dest::Int)
@@ -30,3 +32,13 @@ function reshape_product_broadcast(A::AbstractArray, B::AbstractArray)
     B = reshape(B, ones(Int, ndims_A)..., size(B)...)
     return A, B
 end
+
+"""
+    _to_colvecs(X::AbstractVector{<:AbstractVector})
+
+Convert a vector-of-vectors to `ColVecs` for KernelFunctions compatibility.
+
+Each inner vector becomes a column of the resulting matrix, so the output has
+shape `(d, n)` where `d` is the dimension and `n` is the number of points.
+"""
+_to_colvecs(X::AbstractVector{<:AbstractVector}) = ColVecs(reduce(hcat, X))

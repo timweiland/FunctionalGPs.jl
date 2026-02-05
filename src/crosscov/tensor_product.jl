@@ -41,11 +41,6 @@ function Base.show(io::IO, op::AbstractTensorProductCrosscov)
     return print(io, join(["$(string(factor))" for factor in factors(op)], " ⊗ "))
 end
 
-function kernelmatrix(op::AbstractTensorProductCrosscov, x::AbstractVector)
-    # Generic vector input not implemented yet
-    throw(MethodError(kernelmatrix, (op, x)))
-end
-
 # Vector-of-vectors input for tensor product crosscov
 # The matrix orientation depends on randvar_arg:
 # - randvar_arg=1: factor matrices are (n_randvar_d × n_points), use column-wise Khatri-Rao
@@ -62,25 +57,6 @@ function kernelmatrix(op::AbstractTensorProductCrosscov, x::AbstractVector{<:Abs
         return _khatri_rao_columns(Ks)
     else
         # Points on rows, randvars on columns: row-wise Khatri-Rao
-        return _khatri_rao_rows(Ks)
-    end
-end
-
-function kernelmatrix(
-        op::AbstractTensorProductCrosscov,
-        x::AbstractVector{<:AbstractVector},
-        y::AbstractVector{<:AbstractVector},
-    )
-    N = length(factors(op))
-    # Extract coordinates for each dimension
-    coords_x = ntuple(d -> [xi[d] for xi in x], N)
-    coords_y = ntuple(d -> [yi[d] for yi in y], N)
-    # Compute factor matrices
-    Ks = [kernelmatrix(factors(op)[d], coords_x[d], coords_y[d]) for d in 1:N]
-    # Combine with appropriate Khatri-Rao variant based on randvar_arg
-    if randvar_arg(op) == 1
-        return _khatri_rao_columns(Ks)
-    else
         return _khatri_rao_rows(Ks)
     end
 end
