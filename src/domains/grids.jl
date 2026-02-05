@@ -1,4 +1,4 @@
-import KernelFunctions: KernelTensorProduct, kernelmatrix, kernelmatrix_diag, ColVecs
+import KernelFunctions: KernelTensorProduct, kernelmatrix, kernelmatrix_diag
 
 export FactorizedGrid, kernelmatrix, kernelmatrix_diag
 
@@ -108,10 +108,8 @@ function kernelmatrix(k::KernelTensorProduct, x::ColVecs, y::FactorizedGrid)
 end
 
 # kernelmatrix_diag for vector-of-vectors: convert to ColVecs
-# Note: exclude ColVecs and RowVecs to avoid infinite recursion
 function kernelmatrix_diag(k::KernelTensorProduct, x::Vector{<:AbstractVector})
-    x_mat = reduce(hcat, x)
-    return kernelmatrix_diag(k, ColVecs(x_mat))
+    return kernelmatrix_diag(k, _to_colvecs(x))
 end
 
 """

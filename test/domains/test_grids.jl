@@ -1,5 +1,6 @@
 using ReTest
 using FunctionalGPs
+using FunctionalGPs: _grid_to_colvecs
 using KernelFunctions
 using LinearAlgebra
 
@@ -36,5 +37,47 @@ using LinearAlgebra
         K = kernelmatrix(k, flat_arr(Gₓ), flat_arr(Gy))
 
         @test kernelmatrix(k, Gₓ, Gy) ≈ K atol = 1.0e-8
+    end
+
+    @testset "Mixed FactorizedGrid and ColVecs" begin
+        x₁ = rand(0.0:0.1:3.0, 5)
+        x₂ = rand(0.0:0.1:3.0, 4)
+        G = FactorizedGrid(x₁, x₂)
+        G_cv = _grid_to_colvecs(G)
+
+        # Arbitrary points as ColVecs
+        pts = ColVecs(rand(2, 7))
+
+        K_ref = kernelmatrix(k, G_cv, pts)
+        @test kernelmatrix(k, G, pts) ≈ K_ref
+
+        K_ref2 = kernelmatrix(k, pts, G_cv)
+        @test kernelmatrix(k, pts, G) ≈ K_ref2
+    end
+
+    @testset "_grid_to_colvecs ordering" begin
+        x₁ = [0.1, 0.2, 0.3]
+        x₂ = [0.4, 0.5]
+        G = FactorizedGrid(x₁, x₂)
+        cv = _grid_to_colvecs(G)
+
+        # Column-major: dimension 1 varies fastest
+        # Points: (0.1,0.4), (0.2,0.4), (0.3,0.4), (0.1,0.5), (0.2,0.5), (0.3,0.5)
+        expected_pts = [
+            [0.1, 0.4], [0.2, 0.4], [0.3, 0.4],
+            [0.1, 0.5], [0.2, 0.5], [0.3, 0.5],
+        ]
+        for (i, pt) in enumerate(expected_pts)
+            @test cv.X[:, i] ≈ pt
+        end
+    end
+
+    @testset "kernelmatrix_diag with vector-of-vectors" begin
+        pts = [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6], [0.7, 0.8]]
+        pts_mat = reduce(hcat, pts)
+
+        d_ref = kernelmatrix_diag(k, ColVecs(pts_mat))
+        d_vecs = kernelmatrix_diag(k, pts)
+        @test d_vecs ≈ d_ref
     end
 end
