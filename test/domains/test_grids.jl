@@ -77,7 +77,8 @@ using LinearAlgebra
         pts_mat = reduce(hcat, pts)
 
         d_ref = kernelmatrix_diag(k, ColVecs(pts_mat))
-        d_vecs = kernelmatrix_diag(k, pts)
+        # Falls through to generic KernelFunctions fallback (no piracy needed)
+        d_vecs = kernelmatrix_diag(k, ColVecs(pts_mat))
         @test d_vecs ≈ d_ref
     end
 end

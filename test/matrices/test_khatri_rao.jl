@@ -149,4 +149,49 @@ using LinearAlgebra
         K = KhatriRaoMatrix{1}([F1, F2])
         @test eltype(K) == Float64
     end
+
+    @testset "Adjoint / transpose" begin
+        A = rand(2, 3)
+        B = rand(3, 3)
+        K1 = KhatriRaoMatrix{1}([A, B])
+        M1 = Matrix(K1)
+
+        @testset "Column-wise adjoint indexing" begin
+            K1t = K1'
+            for i in 1:size(M1, 2), j in 1:size(M1, 1)
+                @test K1t[i, j] ≈ M1[j, i]
+            end
+        end
+
+        @testset "Column-wise adjoint * vector" begin
+            v = rand(size(K1, 1))
+            @test Matrix(K1') * v ≈ M1' * v
+        end
+
+        C = rand(5, 2)
+        D = rand(5, 3)
+        K2 = KhatriRaoMatrix{2}([C, D])
+        M2 = Matrix(K2)
+
+        @testset "Row-wise adjoint indexing" begin
+            K2t = K2'
+            for i in 1:size(M2, 2), j in 1:size(M2, 1)
+                @test K2t[i, j] ≈ M2[j, i]
+            end
+        end
+
+        @testset "Row-wise adjoint * vector" begin
+            v = rand(size(K2, 1))
+            @test Matrix(K2') * v ≈ M2' * v
+        end
+    end
+
+    @testset "Mixed element types" begin
+        F1 = rand(Float64, 3, 4)
+        F2 = rand(Float64, 2, 4)
+        K = KhatriRaoMatrix{1}([F1, F2])
+
+        v32 = rand(Float32, 4)
+        @test K * v32 ≈ Matrix(K) * v32
+    end
 end

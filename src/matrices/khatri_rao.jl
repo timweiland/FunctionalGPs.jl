@@ -105,10 +105,10 @@ end
 # ── Matrix-vector product ──
 
 function LinearAlgebra.mul!(
-        y::AbstractVector{T},
-        K::KhatriRaoMatrix{1, T},
-        v::AbstractVector{T},
-    ) where {T}
+        y::AbstractVector,
+        K::KhatriRaoMatrix{1},
+        v::AbstractVector,
+    )
     N = length(K.factors)
     if N == 2
         return _mul_colwise_2!(y, K.factors[1], K.factors[2], v)
@@ -118,10 +118,10 @@ function LinearAlgebra.mul!(
 end
 
 function LinearAlgebra.mul!(
-        y::AbstractVector{T},
-        K::KhatriRaoMatrix{2, T},
-        v::AbstractVector{T},
-    ) where {T}
+        y::AbstractVector,
+        K::KhatriRaoMatrix{2},
+        v::AbstractVector,
+    )
     N = length(K.factors)
     if N == 2
         return _mul_rowwise_2!(y, K.factors[1], K.factors[2], v)
@@ -179,13 +179,15 @@ function _mul_rowwise_general!(y, factors, v)
 end
 
 # Allocating *
-function Base.:*(K::KhatriRaoMatrix{Axis, T}, v::AbstractVector{T}) where {Axis, T}
+function Base.:*(K::KhatriRaoMatrix, v::AbstractVector)
+    T = promote_type(eltype(K), eltype(v))
     y = similar(v, T, size(K, 1))
     return LinearAlgebra.mul!(y, K, v)
 end
 
 # Matrix * Matrix: column-by-column
-function Base.:*(K::KhatriRaoMatrix{Axis, T}, V::AbstractMatrix{T}) where {Axis, T}
+function Base.:*(K::KhatriRaoMatrix, V::AbstractMatrix)
+    T = promote_type(eltype(K), eltype(V))
     Y = similar(V, T, size(K, 1), size(V, 2))
     for col in 1:size(V, 2)
         LinearAlgebra.mul!(view(Y, :, col), K, V[:, col])

@@ -110,11 +110,6 @@ function kernelmatrix(k::KernelTensorProduct, x::ColVecs, y::FactorizedGrid)
     return kernelmatrix(k, x, _grid_to_colvecs(y))
 end
 
-# kernelmatrix_diag for vector-of-vectors: convert to ColVecs
-function kernelmatrix_diag(k::KernelTensorProduct, x::Vector{<:AbstractVector})
-    return kernelmatrix_diag(k, _to_colvecs(x))
-end
-
 """
     kernelmatrix_diag(k::KernelTensorProduct, x::FactorizedGrid)
 
