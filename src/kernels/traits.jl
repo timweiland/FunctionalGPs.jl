@@ -100,13 +100,46 @@ kernel_evaluate_evaluate(::KernelStructureTrait, k::Kernel, X) = kernelmatrix(k,
 kernel_evaluate_evaluate(::KernelStructureTrait, k::Kernel, X_left, X_right) =
     kernelmatrix(k, X_left, X_right)
 
-# KernelTensorProduct requires ColVecs wrapper for vector-of-vectors input
+# KernelTensorProduct with FactorizedGrid: Kronecker product with per-factor trait dispatch.
+# Each factor kernel goes through kernel_evaluate_evaluate individually, so stationary
+# kernels on uniform ranges produce Toeplitz factors instead of dense matrices.
+function kernel_evaluate_evaluate(
+        ::KernelStructureTrait,
+        k::KernelTensorProduct,
+        X::FactorizedGrid,
+    )
+    @assert length(k.kernels) == length(X.ranges)
+    Ks = (kernel_evaluate_evaluate(k.kernels[i], X.ranges[i]) for i in 1:length(X.ranges))
+    return reduce(kronecker, reverse(Tuple(Ks)))
+end
+
+function kernel_evaluate_evaluate(
+        ::KernelStructureTrait,
+        k::KernelTensorProduct,
+        X_left::FactorizedGrid,
+        X_right::FactorizedGrid,
+    )
+    @assert length(X_left.ranges) == length(X_right.ranges)
+    @assert length(k.kernels) == length(X_left.ranges)
+    Ks = (
+        kernel_evaluate_evaluate(k.kernels[i], X_left.ranges[i], X_right.ranges[i])
+            for i in 1:length(X_left.ranges)
+    )
+    return reduce(kronecker, reverse(Tuple(Ks)))
+end
+
+# KernelTensorProduct with vector-of-vectors: Hadamard product of per-dimension
+# lazy kernel matrices. Each factor goes through kernel_evaluate_evaluate for trait
+# dispatch, so stationary kernels produce lazy representations.
 function kernel_evaluate_evaluate(
         ::KernelStructureTrait,
         k::KernelTensorProduct,
         X::AbstractVector{<:AbstractVector},
     )
-    return kernelmatrix(k, _to_colvecs(X))
+    N = length(k.kernels)
+    coords = ntuple(d -> [xi[d] for xi in X], N)
+    Ks = ntuple(d -> kernel_evaluate_evaluate(k.kernels[d], coords[d]), N)
+    return BroadcastArray(*, Ks...)
 end
 
 function kernel_evaluate_evaluate(
@@ -115,7 +148,39 @@ function kernel_evaluate_evaluate(
         X_left::AbstractVector{<:AbstractVector},
         X_right::AbstractVector{<:AbstractVector},
     )
-    return kernelmatrix(k, _to_colvecs(X_left), _to_colvecs(X_right))
+    N = length(k.kernels)
+    coords_left = ntuple(d -> [xi[d] for xi in X_left], N)
+    coords_right = ntuple(d -> [xi[d] for xi in X_right], N)
+    Ks = ntuple(
+        d -> kernel_evaluate_evaluate(k.kernels[d], coords_left[d], coords_right[d]), N,
+    )
+    return BroadcastArray(*, Ks...)
+end
+
+# Mixed: FactorizedGrid on one side, unstructured points on the other → KhatriRao.
+# Rows = X_left, Cols = X_right. Grid side decomposes into per-dimension factors.
+function kernel_evaluate_evaluate(
+        ::KernelStructureTrait,
+        k::KernelTensorProduct,
+        X_left::FactorizedGrid,
+        X_right::AbstractVector{<:AbstractVector},
+    )
+    N = length(k.kernels)
+    coords = ntuple(d -> [xi[d] for xi in X_right], N)
+    Ks = [kernel_evaluate_evaluate(k.kernels[d], X_left.ranges[d], coords[d]) for d in 1:N]
+    return KhatriRaoMatrix{1}(Ks)
+end
+
+function kernel_evaluate_evaluate(
+        ::KernelStructureTrait,
+        k::KernelTensorProduct,
+        X_left::AbstractVector{<:AbstractVector},
+        X_right::FactorizedGrid,
+    )
+    N = length(k.kernels)
+    coords = ntuple(d -> [xi[d] for xi in X_left], N)
+    Ks = [kernel_evaluate_evaluate(k.kernels[d], coords[d], X_right.ranges[d]) for d in 1:N]
+    return KhatriRaoMatrix{2}(Ks)
 end
 
 """

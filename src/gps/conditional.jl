@@ -200,7 +200,12 @@ function condition_on_observation(f::LinearConditionalGP, observation::LinearObs
     off_diagonal_blocks = ℒ(f.kℒs)
 
     N_blocks_prior = length(f.observations)
-    G_blocks = Array{typeof(ℒ_block)}(undef, N_blocks_prior + 1, N_blocks_prior + 1)
+    new_block_type = typeof(ℒ_block)
+    existing_block_type = eltype(f.G.blocks)
+    block_type = new_block_type <: existing_block_type ? existing_block_type :
+        existing_block_type <: new_block_type ? new_block_type :
+        AbstractMatrix{eltype(ℒ_block)}
+    G_blocks = Array{block_type}(undef, N_blocks_prior + 1, N_blocks_prior + 1)
     G_blocks[1:N_blocks_prior, 1:N_blocks_prior] = f.G.blocks
     G_blocks[end, 1:N_blocks_prior] = off_diagonal_blocks.blocks
     G_blocks[1:N_blocks_prior, end] = map(adjoint, off_diagonal_blocks.blocks)

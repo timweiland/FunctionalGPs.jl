@@ -50,29 +50,24 @@ kernelmatrix(pv::EvaluationPVCrosscov{1}, X::AbstractVector) =
 kernelmatrix(pv::EvaluationPVCrosscov{2}, X::AbstractVector) =
     kernelmatrix(pv.k, X, pv.linfunc.X)
 
-# KernelTensorProduct with vector-of-vectors: convert to ColVecs
+# KernelTensorProduct with multi-dimensional points: route through
+# kernel_evaluate_evaluate for lazy per-dimension dispatch.
+# Depending on input types this produces:
+# - FactorizedGrid × FactorizedGrid → Kronecker product
+# - FactorizedGrid × vector-of-vectors → KhatriRao product
+# - vector-of-vectors × vector-of-vectors → Hadamard product
 function kernelmatrix(
         pv::EvaluationPVCrosscov{1, <:KernelTensorProduct},
         X::AbstractVector{<:AbstractVector},
     )
-    return kernelmatrix(pv.k, _to_colvecs(pv.linfunc.X), _to_colvecs(X))
+    return kernel_evaluate_evaluate(pv.k, pv.linfunc.X, X)
 end
 
 function kernelmatrix(
         pv::EvaluationPVCrosscov{2, <:KernelTensorProduct},
         X::AbstractVector{<:AbstractVector},
     )
-    return kernelmatrix(pv.k, _to_colvecs(X), _to_colvecs(pv.linfunc.X))
-end
-
-# FactorizedGrid with KernelTensorProduct and vector-of-vectors observation points
-# Convert observation points to ColVecs for KernelFunctions compatibility
-function kernelmatrix(pv::EvaluationPVCrosscov{1, <:KernelTensorProduct}, X::FactorizedGrid)
-    return kernelmatrix(pv.k, _to_colvecs(pv.linfunc.X), X)
-end
-
-function kernelmatrix(pv::EvaluationPVCrosscov{2, <:KernelTensorProduct}, X::FactorizedGrid)
-    return kernelmatrix(pv.k, X, _to_colvecs(pv.linfunc.X))
+    return kernel_evaluate_evaluate(pv.k, X, pv.linfunc.X)
 end
 
 function Base.isequal(pv1::EvaluationPVCrosscov, pv2::EvaluationPVCrosscov)

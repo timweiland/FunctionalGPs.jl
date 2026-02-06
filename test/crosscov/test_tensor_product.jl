@@ -1,5 +1,5 @@
 using FunctionalGPs
-using FunctionalGPs: _khatri_rao_columns, _khatri_rao_rows
+using FunctionalGPs: KhatriRaoMatrix
 using KernelFunctions: KernelTensorProduct, ColVecs
 using Kronecker: KroneckerProduct
 using LinearAlgebra
@@ -30,15 +30,20 @@ using LinearAlgebra
         points = [[0.1, 0.15], [0.3, 0.25], [0.5, 0.1], [0.7, 0.4]]
         K = kernelmatrix(pv_prod, points)
 
-        # The randvar dimension (rows of k₁/k₂ factor matrices) gets Khatri-Rao'd,
-        # while the points dimension stays aligned. Verify against brute-force:
+        # Should return a lazy KhatriRaoMatrix
+        @test K isa KhatriRaoMatrix{2}
+
+        # Verify correctness by checking each entry against brute-force:
         # each entry K[i, j] = ∏_d factor_d_kernelmatrix[obs_d_i, point_d_j]
         coords_1 = [p[1] for p in points]
         coords_2 = [p[2] for p in points]
         K₁ = kernelmatrix(δ₁k, coords_1)
         K₂ = kernelmatrix(δ₂k, coords_2)
-        K_expected = _khatri_rao_rows([K₁, K₂])
-        @test K ≈ K_expected
+        # Row-wise Khatri-Rao: each row is kron of corresponding rows
+        K_mat = Matrix(K)
+        for i in 1:size(K_mat, 1)
+            @test K_mat[i, :] ≈ kron(K₂[i, :], K₁[i, :]) atol = 1.0e-12
+        end
     end
 
     @testset "Vector-of-vectors input (one-arg, randvar_arg=1)" begin
@@ -50,12 +55,18 @@ using LinearAlgebra
         points = [[0.2, 0.3], [0.4, 0.5], [0.6, 0.8]]
         K = kernelmatrix(pv_arg1, points)
 
+        # Should return a lazy KhatriRaoMatrix
+        @test K isa KhatriRaoMatrix{1}
+
+        # Verify correctness: column-wise Khatri-Rao
         coords_1 = [p[1] for p in points]
         coords_2 = [p[2] for p in points]
         K₁ = kernelmatrix(δ₁k_arg1, coords_1)
         K₂ = kernelmatrix(δ₂k_arg1, coords_2)
-        K_expected = _khatri_rao_columns([K₁, K₂])
-        @test K ≈ K_expected
+        K_mat = Matrix(K)
+        for j in 1:size(K_mat, 2)
+            @test K_mat[:, j] ≈ kron(K₂[:, j], K₁[:, j]) atol = 1.0e-12
+        end
     end
 
     @testset "Two-arg kernelmatrix errors (factors lack two-arg support)" begin

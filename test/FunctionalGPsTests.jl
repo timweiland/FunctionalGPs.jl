@@ -25,6 +25,9 @@ include("kernels/test_compact_kernelmatrix.jl")
 include("kernels/test_matern_derivative.jl")
 include("kernels/test_tensor_product_traits.jl")
 
+# === Matrices ===
+include("matrices/test_khatri_rao.jl")
+
 # === Crosscov ===
 include("crosscov/test_scale.jl")
 include("crosscov/test_tensor_product.jl")

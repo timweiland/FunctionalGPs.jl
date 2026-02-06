@@ -18,12 +18,13 @@ function (op::EvaluationFunctional)(pv::EvaluationPVCrosscov{2})
     return kernel_evaluate_evaluate(pv.k, op.X, pv.linfunc.X)
 end
 
-# Apply to TensorProductCrosscov
+# Apply to TensorProductCrosscov — FactorizedGrid: Kronecker product
 function (op::EvaluationFunctional)(pv::TensorProductCrosscov)
     X = op.X
 
     if !(X isa FactorizedGrid)
-        throw(MethodError(op, (pv,)))
+        # Vector-of-vectors: produces a KhatriRaoMatrix
+        return kernelmatrix(pv, X)
     end
 
     factors_tuple = factors(pv)

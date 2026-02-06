@@ -88,6 +88,9 @@ kernelmatrix(k::KernelTensorProduct, x::FactorizedGrid) = kernelmatrix(k, x, x)
 
 # Mixed case: FactorizedGrid with ColVecs or other AbstractVector
 # Convert FactorizedGrid to ColVecs for compatibility
+# Allow _to_colvecs to handle FactorizedGrid (defined after array_ops.jl)
+_to_colvecs(X::FactorizedGrid) = _grid_to_colvecs(X)
+
 function _grid_to_colvecs(grid::FactorizedGrid)
     # convert(Array, grid) returns shape (n1, n2, ..., d) where d is dimension count
     arr = convert(Array, grid)
