@@ -222,24 +222,26 @@ end
 
 function mean(f_cond_eval::FiniteGP{<:LinearConditionalGP})
     return AbstractGPs.mean(f_cond_eval.f.prior(f_cond_eval.x)) +
+        Vector(
         kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x) *
-        representer_weights(f_cond_eval.f)
+            representer_weights(f_cond_eval.f)
+    )
 end
 function cov(f_cond_eval::FiniteGP{<:LinearConditionalGP})
-    prior_cov = f_cond_eval.f.prior(f_cond_eval.x)
-    xkℒs = kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x)
+    prior_cov = kernel_evaluate_evaluate(f_cond_eval.f.prior.kernel, f_cond_eval.x)
+    xkℒs = Matrix(kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x))
     C = G_chol(f_cond_eval.f)
     solve = C \ xkℒs'
     cov_update = xkℒs * solve
     return prior_cov - cov_update
 end
 function var(f_cond_eval::FiniteGP{<:LinearConditionalGP})
-    prior_var = var(f_cond_eval.f.prior(f_cond_eval.x))
-    xkℒs = kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x)
+    prior_var = diag(kernel_evaluate_evaluate(f_cond_eval.f.prior.kernel, f_cond_eval.x))
+    xkℒs = Matrix(kernelmatrix(f_cond_eval.f.kℒs, f_cond_eval.x))
     C = G_chol(f_cond_eval.f)
     solve = C \ xkℒs'
-    diag_update = sum(xkℒs .* transpose(solve); dims = 2)
-    return prior_var - reshape(vec(diag_update), size(prior_var))
+    diag_update = vec(sum(xkℒs .* transpose(solve); dims = 2))
+    return prior_var - diag_update
 end
 function mean_and_var(f_cond_eval::FiniteGP{<:LinearConditionalGP})
     return (mean(f_cond_eval), var(f_cond_eval))

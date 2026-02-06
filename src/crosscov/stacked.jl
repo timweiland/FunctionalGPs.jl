@@ -81,7 +81,16 @@ function Base.:(∪)(
 end
 
 function kernelmatrix(pv::StackedPVCrosscov, X::AbstractVector)
-    return hcat([kernelmatrix(pv_crosscov, X) for pv_crosscov in pv.pv_crosscovs]...)
+    blocks = [kernelmatrix(pv_crosscov, X) for pv_crosscov in pv.pv_crosscovs]
+    if randvar_arg(pv) == 1
+        # Randvar on rows: blocks have shape (n_randvar_i × length(X))
+        # Stack vertically (n×1 block column)
+        return mortar(reshape(blocks, :, 1))
+    else
+        # Randvar on columns: blocks have shape (length(X) × n_randvar_i)
+        # Stack horizontally (1×n block row)
+        return mortar(reshape(blocks, 1, :))
+    end
 end
 
 function Base.isequal(pv1::StackedPVCrosscov, pv2::StackedPVCrosscov)
