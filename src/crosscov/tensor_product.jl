@@ -42,63 +42,15 @@ function Base.show(io::IO, op::AbstractTensorProductCrosscov)
 end
 
 # Vector-of-vectors input for tensor product crosscov
+# Returns a lazy KhatriRaoMatrix instead of materializing the full product.
 # The matrix orientation depends on randvar_arg:
-# - randvar_arg=1: factor matrices are (n_randvar_d × n_points), use column-wise Khatri-Rao
-# - randvar_arg=2: factor matrices are (n_points × n_randvar_d), use row-wise Khatri-Rao
+# - randvar_arg=1: column-wise Khatri-Rao (Axis=1)
+# - randvar_arg=2: row-wise Khatri-Rao (Axis=2)
 function kernelmatrix(op::AbstractTensorProductCrosscov, x::AbstractVector{<:AbstractVector})
     N = length(factors(op))
-    # Extract coordinates for each dimension
     coords = ntuple(d -> [xi[d] for xi in x], N)
-    # Compute factor matrices
-    Ks = [kernelmatrix(factors(op)[d], coords[d]) for d in 1:N]
-    # Combine with appropriate Khatri-Rao variant based on randvar_arg
-    if randvar_arg(op) == 1
-        # Randvars on rows, points on columns: column-wise Khatri-Rao
-        return _khatri_rao_columns(Ks)
-    else
-        # Points on rows, randvars on columns: row-wise Khatri-Rao
-        return _khatri_rao_rows(Ks)
-    end
-end
-
-# Column-wise Kronecker product (Khatri-Rao product)
-# Given matrices K1 (m1 × n), K2 (m2 × n), returns (m1*m2 × n) matrix
-# where each column is kron(K2[:, j], K1[:, j])
-function _khatri_rao_columns(Ks::Vector)
-    n_cols = size(Ks[1], 2)
-    # Start with first factor
-    result = Ks[1]
-    # Kronecker with remaining factors
-    for i in 2:length(Ks)
-        K = Ks[i]
-        m1, m2 = size(result, 1), size(K, 1)
-        new_result = similar(result, m1 * m2, n_cols)
-        for j in 1:n_cols
-            new_result[:, j] = kron(K[:, j], result[:, j])
-        end
-        result = new_result
-    end
-    return result
-end
-
-# Row-wise Kronecker product
-# Given matrices K1 (m × n1), K2 (m × n2), returns (m × n1*n2) matrix
-# where each row is kron(K2[i, :], K1[i, :])
-function _khatri_rao_rows(Ks::Vector)
-    n_rows = size(Ks[1], 1)
-    # Start with first factor
-    result = Ks[1]
-    # Kronecker with remaining factors
-    for i in 2:length(Ks)
-        K = Ks[i]
-        n1, n2 = size(result, 2), size(K, 2)
-        new_result = similar(result, n_rows, n1 * n2)
-        for j in 1:n_rows
-            new_result[j, :] = kron(K[j, :], result[j, :])
-        end
-        result = new_result
-    end
-    return result
+    Ks = [EvaluationFunctional(coords[d])(factors(op)[d]) for d in 1:N]
+    return KhatriRaoMatrix{randvar_arg(op)}(Ks)
 end
 
 function kernelmatrix(op::AbstractTensorProductCrosscov, x::FactorizedGrid)
