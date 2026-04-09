@@ -15,3 +15,5 @@ end
     _concat_kernel_impl(op, k, args...; kwargs...)
 (op::AbstractLinFctlLinFuncOpConcat)(k::ScaledKernel, args...; kwargs...) =
     _concat_kernel_impl(op, k, args...; kwargs...)
+(op::AbstractLinFctlLinFuncOpConcat)(k::LinearlyScaledKernel, args...; kwargs...) =
+    k.scalar * _concat_kernel_impl(op, k.kernel, args...; kwargs...)

@@ -29,3 +29,7 @@ end
 function (ℒ::AbstractLinearFunctionOperator)(k::ScaledKernel, args...; kwargs...)
     return ScaledKernel(ℒ(k.kernel, args...; kwargs...), k.σ²)
 end
+
+function (ℒ::AbstractLinearFunctionOperator)(k::LinearlyScaledKernel, args...; kwargs...)
+    return LinearlyScaledKernel(ℒ(k.kernel, args...; kwargs...), k.scalar)
+end

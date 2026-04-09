@@ -12,3 +12,4 @@ _fallback(op::AbstractSumLinearFunctionOperator, x, args...; kwargs...) = invoke
 (op::AbstractSumLinearFunctionOperator)(x::ZeroMean{T}, args...; kwargs...) where {T} = ZeroMean{T}()
 (op::AbstractSumLinearFunctionOperator)(x::KernelSum, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
 (op::AbstractSumLinearFunctionOperator)(x::ScaledKernel, args...; kwargs...) = _fallback(op, x, args...; kwargs...)
+(op::AbstractSumLinearFunctionOperator)(x::LinearlyScaledKernel, args...; kwargs...) = _fallback(op, x, args...; kwargs...)

@@ -31,6 +31,13 @@ function Base.:(*)(
     return ConstantScaledLinearFunctionOperator{T}(y.linfuncop, x * y.scalar)
 end
 
+function Base.:(-)(op::AbstractLinearFunctionOperator)
+    return (-1) * op
+end
+function Base.:(-)(a::AbstractLinearFunctionOperator, b::AbstractLinearFunctionOperator)
+    return a + (-b)
+end
+
 function Base.show(io::IO, op::AbstractScaledLinearFunctionOperator)
     return print(io, "$(string(scale(op))) * ($(string(linfuncop(op))))")
 end

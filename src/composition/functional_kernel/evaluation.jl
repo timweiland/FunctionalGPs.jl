@@ -10,3 +10,6 @@ end
 
 (op::EvaluationFunctional)(k::ScaledKernel, args...; kwargs...) =
     k.σ² * op(k.kernel, args...; kwargs...)
+
+(op::EvaluationFunctional)(k::LinearlyScaledKernel; kwargs...) =
+    k.scalar * op(k.kernel; kwargs...)

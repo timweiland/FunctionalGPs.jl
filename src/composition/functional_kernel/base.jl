@@ -9,3 +9,8 @@ end
 function (ℒ::AbstractLinearFunctional)(k::ScaledKernel, args...; kwargs...)
     return k.σ² * ℒ(k.kernel, args...; kwargs...)
 end
+
+# Handle LinearlyScaledKernel - same pattern, allows negative scalars
+function (ℒ::AbstractLinearFunctional)(k::LinearlyScaledKernel, args...; kwargs...)
+    return k.scalar * ℒ(k.kernel, args...; kwargs...)
+end

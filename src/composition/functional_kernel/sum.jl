@@ -12,3 +12,5 @@ end
     _sum_kernel_impl(op, k, args...; kwargs...)
 (op::AbstractSumLinearFunctional)(k::ScaledKernel, args...; kwargs...) =
     _sum_kernel_impl(op, k, args...; kwargs...)
+(op::AbstractSumLinearFunctional)(k::LinearlyScaledKernel, args...; kwargs...) =
+    k.scalar * _sum_kernel_impl(op, k.kernel, args...; kwargs...)

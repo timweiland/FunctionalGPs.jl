@@ -14,6 +14,16 @@ component is the result of applying each individual functional to the kernel.
 - `StackedPVCrosscov`: A stacked process-vector crosscovariance
 """
 function (stacked::StackedLinearFunctional)(k::Kernel; arg::Integer = 2)
-    pv_crosscovs = [lf(k, arg = arg) for lf in stacked.linfunctionals]
+    pv_crosscovs = [lf(k; arg = arg) for lf in stacked.linfunctionals]
     return StackedPVCrosscov(pv_crosscovs)
+end
+
+# Disambiguation for KernelSum and ScaledKernel (vs AbstractLinearFunctional methods)
+(stacked::StackedLinearFunctional)(k::KernelSum; arg::Integer = 2) =
+    StackedPVCrosscov([lf(k; arg = arg) for lf in stacked.linfunctionals])
+(stacked::StackedLinearFunctional)(k::ScaledKernel; arg::Integer = 2) =
+    k.σ² * stacked(k.kernel; arg = arg)
+
+function (stacked::StackedLinearFunctional)(k::LinearlyScaledKernel; arg::Integer = 2)
+    return k.scalar * stacked(k.kernel; arg = arg)
 end

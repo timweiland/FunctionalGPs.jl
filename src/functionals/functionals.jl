@@ -42,6 +42,7 @@ include("evaluation.jl")
 include("integral.jl")
 
 # Arithmetic operations on functionals
+include("scale.jl")
 include("sum.jl")
 include("concatenate.jl")
 include("stacked.jl")

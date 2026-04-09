@@ -42,6 +42,14 @@ function (op::PartialDerivative{1, 1})(
     return ScaledKernel(op(k.kernel; arg = arg), k.σ²)
 end
 
+# Disambiguation for LinearlyScaledKernel
+function (op::PartialDerivative{1, 1})(
+        k::LinearlyScaledKernel;
+        arg::Integer = 2,
+    )
+    return LinearlyScaledKernel(op(k.kernel; arg = arg), k.scalar)
+end
+
 ########### PV Crosscovs ###########
 function (op::PartialDerivative{1, M})(pv::TensorProductCrosscov{M}) where {M}
     factors = Vector{ProcessVectorCrossCovariance}(undef, M)

@@ -18,6 +18,13 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     return k.σ² * ℒ(k.kernel; arg = arg)
 end
 
+function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+        k::LinearlyScaledKernel;
+        arg = 2,
+    ) where {T}
+    return k.scalar * ℒ(k.kernel; arg = arg)
+end
+
 function cancel_integral(
         k::DerivativeKernel1D{N, M},
         ℒ::VectorizedLebesgueIntegral{Interval{T}};

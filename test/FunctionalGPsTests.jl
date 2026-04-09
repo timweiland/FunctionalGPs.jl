@@ -47,6 +47,7 @@ include("operators/test_evaluation.jl")
 
 # === Functionals ===
 include("functionals/test_linear_functional.jl")
+include("functionals/test_scale.jl")
 include("functionals/test_sum.jl")
 include("functionals/test_concatenate.jl")
 include("functionals/test_stack.jl")
