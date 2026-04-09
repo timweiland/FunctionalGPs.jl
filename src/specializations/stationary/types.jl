@@ -56,3 +56,15 @@ function _stationary_coordinates(points::AbstractVector{T}) where {T <: Real}
     return reshape(points, :, 1)
 end
 _stationary_coordinates(::Any) = nothing
+
+"""
+    _safe_dist(r2)
+
+AD-safe distance computation: clamps negative values and returns `zero(r2)`
+when `r2` is zero, avoiding the NaN that ForwardDiff produces from `sqrt'(0) = Inf`.
+"""
+function _safe_dist(r2)
+    r2 = max(r2, zero(r2))
+    iszero(r2) && return zero(r2)
+    return sqrt(r2)
+end

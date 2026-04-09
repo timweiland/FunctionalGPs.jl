@@ -59,6 +59,9 @@ include("functionals/test_factorized_integrals.jl")
 include("test_sin_regression.jl")
 include("problems/test_heat.jl")
 
+# === Autodiff ===
+include("hyperopt/test_autodiff.jl")
+
 @testset "Aqua" begin
     Aqua.test_all(FunctionalGPs; piracies = false, ambiguities = false)
     Aqua.test_piracies(FunctionalGPs; treat_as_own = [MvNormal, SparseCholFactor, CholeskyKronecker])

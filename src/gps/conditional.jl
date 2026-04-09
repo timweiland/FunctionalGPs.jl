@@ -2,7 +2,7 @@ import AbstractGPs: AbstractGP, GP, var, mean_and_var, FiniteGP
 using AbstractGPs
 using BlockArrays
 import Distributions: MvNormal
-import Statistics: cov
+import Statistics: cov, mean
 using Memoize
 import Base: rand
 import Random: AbstractRNG

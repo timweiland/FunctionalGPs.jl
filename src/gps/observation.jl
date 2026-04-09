@@ -36,6 +36,7 @@ end
 
 # Pretty printing
 _noise_summary(::Nothing, N) = "none"
+_noise_summary(ε::Diagonal, N) = "Diagonal(σ²=$(ε[1, 1]))"
 function _noise_summary(ε::AbstractMvNormal, N)
     sparse = ε.Σ isa PDSparseMat
     return sparse ? "MvNormal(n=$(N), sparse)" : "MvNormal(n=$(N))"
@@ -120,13 +121,19 @@ function noise_cov(::LinearObservation{TL, Nothing}) where {TL}
     return nothing
 end
 
+function noise_cov(obs::LinearObservation{TL, <:Diagonal}) where {TL}
+    return obs.noise
+end
+
+function noise_mean(obs::LinearObservation{TL, <:Diagonal}) where {TL}
+    return zeros(Base.length(obs.y))
+end
+
 function _noise_to_mvn(::Nothing, ::Integer)
     return nothing
 end
 function _noise_to_mvn(noise::Real, N::Integer)
-    Σ = spzeros(N, N)
-    Σ[diagind(Σ)] .= noise
-    return MvNormal(zeros(N), Σ)
+    return Diagonal(fill(noise, N))
 end
 function _noise_to_mvn(noise::AbstractVector{<:Real}, N::Integer)
     if length(noise) != N

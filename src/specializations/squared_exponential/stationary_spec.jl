@@ -9,11 +9,9 @@ using KernelFunctions: SqExponentialKernel, TransformedKernel, ScaleTransform
 Return a `StationaryKernelSpec` for the base Squared Exponential kernel (unit scale).
 The radial map evaluates exp(-r²/2) at distances.
 """
-function stationary_kernel_spec(::SqExponentialKernel, ::Type{T}) where {T <: AbstractFloat}
-    scales = T[one(T)]  # Unit scale
-    radial_map = let zero_T = zero(T)
-        r2 -> exp(-max(r2, zero_T) / 2)
-    end
+function stationary_kernel_spec(::SqExponentialKernel, ::Type{T}) where {T <: Real}
+    scales = [one(T)]
+    radial_map = r2 -> exp(-max(r2, zero(r2)) / 2)
     return StationaryKernelSpec(scales, radial_map)
 end
 
@@ -26,12 +24,11 @@ The scale factor s = 1/ℓ is incorporated into the scales vector.
 function stationary_kernel_spec(
         k::TransformedKernel{<:SqExponentialKernel, <:ScaleTransform},
         ::Type{T},
-    ) where {T <: AbstractFloat}
-    s = T(_se_scale(k))
-    scales = T[s]
-    radial_map = let zero_T = zero(T)
-        r2 -> exp(-max(r2, zero_T) / 2)
-    end
+    ) where {T <: Real}
+    # Don't convert scale to T — it may carry AD dual numbers
+    s = _se_scale(k)
+    scales = [s]
+    radial_map = r2 -> exp(-max(r2, zero(r2)) / 2)
     return StationaryKernelSpec(scales, radial_map)
 end
 
@@ -43,15 +40,15 @@ Return a `StationaryKernelSpec` for even-order SE derivatives.
 function stationary_kernel_spec(
         k::SEDerivativeEvenKernel,
         ::Type{T},
-    ) where {T <: AbstractFloat}
-    s = T(k.scale)
-    scales = T[s]
-    coeff_T = T(k.coefficient)
+    ) where {T <: Real}
+    # Don't convert to T — these may carry AD dual numbers
+    s = k.scale
+    scales = [s]
 
-    radial_map = let kernel = k, coeff = coeff_T, zero_T = zero(T)
+    radial_map = let kernel = k, coeff = k.coefficient
         r2 -> begin
-            τ = sqrt(max(r2, zero_T))
-            return coeff * kernel.hermite_poly(T(τ)) * exp(-τ^2 / 2)
+            τ = _safe_dist(r2)
+            return coeff * kernel.hermite_poly(τ) * exp(-τ^2 / 2)
         end
     end
 
@@ -66,17 +63,15 @@ Return a `SignedStationaryKernelSpec` for odd-order SE derivatives.
 function stationary_kernel_spec(
         k::SEDerivativeOddKernel,
         ::Type{T},
-    ) where {T <: AbstractFloat}
-    s = T(k.scale)
-    scales = T[s]
-    coeff_T = T(k.coefficient)
+    ) where {T <: Real}
+    # Don't convert to T — these may carry AD dual numbers
+    s = k.scale
+    scales = [s]
 
-    signed_map = let kernel = k, coeff = coeff_T, zero_T = zero(T)
+    signed_map = let kernel = k, coeff = k.coefficient
         (r2, sign_val) -> begin
-            τ = sqrt(max(r2, zero_T))
-            # For odd Hermite: He_n(-τ) = -He_n(τ)
-            # So we evaluate at |τ| and multiply by sign
-            return sign_val * coeff * kernel.hermite_poly(T(τ)) * exp(-τ^2 / 2)
+            τ = _safe_dist(r2)
+            return sign_val * coeff * kernel.hermite_poly(τ) * exp(-τ^2 / 2)
         end
     end
 

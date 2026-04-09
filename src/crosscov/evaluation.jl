@@ -46,9 +46,9 @@ randvar_batch_size(pv::EvaluationPVCrosscov) = size(pv.linfunc.X)
 randvar_arg(::EvaluationPVCrosscov{EvalArg}) where {EvalArg} = EvalArg
 
 kernelmatrix(pv::EvaluationPVCrosscov{1}, X::AbstractVector) =
-    kernelmatrix(pv.k, pv.linfunc.X, X)
+    kernel_evaluate_evaluate(pv.k, pv.linfunc.X, X)
 kernelmatrix(pv::EvaluationPVCrosscov{2}, X::AbstractVector) =
-    kernelmatrix(pv.k, X, pv.linfunc.X)
+    kernel_evaluate_evaluate(pv.k, X, pv.linfunc.X)
 
 # KernelTensorProduct with multi-dimensional points: route through
 # kernel_evaluate_evaluate for lazy per-dimension dispatch.

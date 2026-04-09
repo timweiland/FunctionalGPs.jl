@@ -16,15 +16,16 @@ function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X::Abstrac
     step = Base.step(X)
     len = Base.length(X)
     T = float(promote_type(typeof(first_point), typeof(step)))
-    T <: AbstractFloat || return kernelmatrix(k, X)
+    T <: Real || return kernelmatrix(k, X)
     spec = stationary_kernel_spec(k, T)
     spec === nothing && return kernelmatrix(k, X)
     length(spec.scales) == 1 || return kernelmatrix(k, X)
-    scaled_step = T(step) * T(spec.scales[1])
-    offsets = collect(0:(len - 1))
-    coeffs = Vector{T}(undef, len)
-    for (idx, offset) in pairs(offsets)
-        dist = scaled_step * T(offset)
+    # Promote T to include scale type (may be AD dual numbers)
+    S = promote_type(T, eltype(spec.scales))
+    scaled_step = S(step) * spec.scales[1]
+    coeffs = Vector{S}(undef, len)
+    for idx in 1:len
+        dist = scaled_step * (idx - 1)
         coeffs[idx] = spec.radial_map(dist^2)
     end
     return SymmetricToeplitz(coeffs)
@@ -44,7 +45,7 @@ function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X)
     coords = _stationary_coordinates(X)
     coords === nothing && return kernelmatrix(k, X)
     T = eltype(coords)
-    T <: AbstractFloat || return kernelmatrix(k, X)
+    T <: Real || return kernelmatrix(k, X)
     spec = stationary_kernel_spec(k, T)
     spec === nothing && return kernelmatrix(k, X)
     return StationaryKernelMatrix(coords, spec.radial_map; scales = spec.scales)
@@ -65,7 +66,7 @@ function kernel_evaluate_evaluate(::StationaryKernelTrait, k::Kernel, X_left, X_
     end
     T_left = eltype(coords_left)
     T_right = eltype(coords_right)
-    if !(T_left <: AbstractFloat && T_right <: AbstractFloat)
+    if !(T_left <: Real && T_right <: Real)
         return kernelmatrix(k, X_left, X_right)
     end
     if T_left != T_right
@@ -87,7 +88,7 @@ function kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X)
     coords = _stationary_coordinates(X)
     coords === nothing && return kernelmatrix(k, X)
     T = eltype(coords)
-    T <: AbstractFloat || return kernelmatrix(k, X)
+    T <: Real || return kernelmatrix(k, X)
     spec = stationary_kernel_spec(k, T)
     spec === nothing && return kernelmatrix(k, X)
     spec isa SignedStationaryKernelSpec || return kernelmatrix(k, X)
@@ -108,7 +109,7 @@ function kernel_evaluate_evaluate(::SignedStationaryKernelTrait, k::Kernel, X_le
     end
     T_left = eltype(coords_left)
     T_right = eltype(coords_right)
-    if !(T_left <: AbstractFloat && T_right <: AbstractFloat)
+    if !(T_left <: Real && T_right <: Real)
         return kernelmatrix(k, X_left, X_right)
     end
     if T_left != T_right

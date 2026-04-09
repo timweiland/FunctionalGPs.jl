@@ -31,4 +31,7 @@ include("problems/problems.jl")
 
 # include("hyperopt/hyperopt.jl")  # Still disabled
 
+# === AD support ===
+include("chainrules.jl")
+
 end

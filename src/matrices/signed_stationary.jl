@@ -24,10 +24,10 @@ end
 Construct a signed stationary matrix using the same inputs on both sides.
 """
 function SignedStationaryKernelMatrix(
-        X::AbstractMatrix{T},
+        X::AbstractMatrix,
         ϕ::F;
         scales::Union{Nothing, AbstractVector} = nothing,
-    ) where {T <: AbstractFloat, F}
+    ) where {F}
     return SignedStationaryKernelMatrix(X, X, ϕ; scales = scales)
 end
 
@@ -39,17 +39,17 @@ squared distance between scaled points and `Δ` is the signed difference in the
 first (and only) dimension.
 """
 function SignedStationaryKernelMatrix(
-        X_left::AbstractMatrix{T},
-        X_right::AbstractMatrix{T},
+        X_left::AbstractMatrix,
+        X_right::AbstractMatrix,
         ϕ::F;
         scales::Union{Nothing, AbstractVector} = nothing,
-    ) where {T <: AbstractFloat, F}
+    ) where {F}
     size(X_left, 2) == size(X_right, 2) ||
         throw(DimensionMismatch("point sets must share feature dimension"))
     ncols = size(X_left, 2)
     ncols == 1 ||
         throw(ArgumentError("Signed stationary matrices currently support only 1D inputs"))
-    scale_values = _stationary_scale_values(T, ncols, scales)
+    scale_values = _stationary_scale_values(ncols, scales)
     scaled_left, norms_left = _scaled_inputs_and_norms(X_left, scale_values)
     if X_left === X_right
         scaled_right = scaled_left
@@ -77,7 +77,7 @@ function SignedStationaryKernelMatrix(
         norms_left::TV,
         norms_right::TW,
         ϕ::F,
-    ) where {T <: AbstractFloat, TX <: AbstractMatrix{T}, TY <: AbstractMatrix{T}, TV <: AbstractVector{T}, TW <: AbstractVector{T}, F}
+    ) where {T <: Real, TX <: AbstractMatrix{T}, TY <: AbstractMatrix{T}, TV <: AbstractVector{T}, TW <: AbstractVector{T}, F}
     return SignedStationaryKernelMatrix{T, TX, TY, TV, TW, F}(
         scaled_left,
         scaled_right,
@@ -93,7 +93,7 @@ function LinearAlgebra.mul!(
         v::AbstractVector{T};
         iblock::Integer = 1024,
         jblock::Integer = 8192,
-    ) where {T <: AbstractFloat}
+    ) where {T <: Real}
     n_rows = size(K, 1)
     n_cols = size(K, 2)
     if length(y) != n_rows || length(v) != n_cols
@@ -136,7 +136,7 @@ function LinearAlgebra.mul!(
     return y
 end
 
-function Base.:*(K::SignedStationaryKernelMatrix{T}, v::AbstractVector{T}) where {T <: AbstractFloat}
+function Base.:*(K::SignedStationaryKernelMatrix{T}, v::AbstractVector{T}) where {T <: Real}
     y = similar(v, T, size(K, 1))
     return LinearAlgebra.mul!(y, K, v)
 end
@@ -171,7 +171,7 @@ function Base.getindex(
     return K.signed_kernel_map.(gram, Δ)
 end
 
-function kernelmatrix(K::SignedStationaryKernelMatrix{T}) where {T <: AbstractFloat}
+function Base.Matrix(K::SignedStationaryKernelMatrix{T}) where {T <: Real}
     n_rows, n_cols = size(K)
     gram = similar(K.scaled_left, T, n_rows, n_cols)
     LinearAlgebra.mul!(gram, K.scaled_left, K.scaled_right', -2, zero(T))

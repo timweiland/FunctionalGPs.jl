@@ -54,15 +54,15 @@ function kernel_integrate_integrate(::StationaryKernelTrait, k::Kernel, domains1
     lowers1, uppers1 = _interval_bounds_matrices(domains1, T)
     lowers2, uppers2 = _interval_bounds_matrices(domains2, T)
 
-    ℓT = T(ℓ_val)
-    radial_map = let anti = anti, ℓ2 = ℓT^2, zero_T = zero(T)
+    # Don't convert ℓ_val to T — it may carry AD dual numbers
+    radial_map = let anti = anti, ℓ2 = ℓ_val^2
         r2 -> begin
-            τ = sqrt(max(r2, zero_T))
+            τ = _safe_dist(r2)
             return ℓ2 * anti(τ)
         end
     end
 
-    scales = T[inv(ℓT)]
+    scales = [inv(ℓ_val)]
 
     # Construct as sum of 4 stationary kernel matrices
     term_bc = StationaryKernelMatrix(uppers1, lowers2, radial_map; scales = scales)
@@ -102,7 +102,7 @@ function kernel_integrate_evaluate(::StationaryKernelTrait, k::Kernel, domains, 
 
     base_type = promote_type(eltype(X), typeof(domains[1].lower), typeof(domains[1].upper))
     T = float(base_type)
-    T <: AbstractFloat || error("Require float type for integration")
+    T <: Real || error("Require real float type for integration")
 
     ℓ_val = _extract_lengthscale(_kernel_lengthscales(k))
     ℓ_val isa Number || error("Require scalar lengthscale for 1D integration")
@@ -114,16 +114,16 @@ function kernel_integrate_evaluate(::StationaryKernelTrait, k::Kernel, domains, 
     lowers, uppers = _interval_bounds_matrices(domains, T)
     points = reshape(T.(X), :, 1)
 
-    ℓT = T(ℓ_val)
-    signed_map = let anti = anti, ℓT = ℓT, zero_T = zero(T), one_T = one(T)
+    # Don't convert ℓ_val to T — it may carry AD dual numbers
+    signed_map = let anti = anti, ℓ = ℓ_val
         (r2, s) -> begin
-            τ = sqrt(max(r2, zero_T))
-            s_eff = iszero(s) ? one_T : s
-            return s_eff * ℓT * anti(τ)
+            τ = _safe_dist(r2)
+            s_eff = iszero(s) ? one(s) : s
+            return s_eff * ℓ * anti(τ)
         end
     end
 
-    scales = T[inv(ℓT)]
+    scales = [inv(ℓ_val)]
     upper_matrix = SignedStationaryKernelMatrix(uppers, points, signed_map; scales = scales)
     lower_matrix = SignedStationaryKernelMatrix(lowers, points, signed_map; scales = scales)
 

@@ -35,8 +35,8 @@ function StationaryKernelMatrix(
         X::AbstractMatrix{T},
         ϕ::F;
         scales::Union{Nothing, AbstractVector} = nothing,
-        jitter::T = zero(T),
-    ) where {T <: AbstractFloat, F}
+        jitter = zero(T),
+    ) where {T <: Real, F}
     return StationaryKernelMatrix(X, X, ϕ; scales = scales, jitter = jitter)
 end
 
@@ -49,16 +49,16 @@ specify per-dimension scalings applied to both sets; `jitter` is only applied
 when `X_left === X_right`.
 """
 function StationaryKernelMatrix(
-        X_left::AbstractMatrix{T},
-        X_right::AbstractMatrix{T},
+        X_left::AbstractMatrix,
+        X_right::AbstractMatrix,
         ϕ::F;
         scales::Union{Nothing, AbstractVector} = nothing,
-        jitter::T = zero(T),
-    ) where {T <: AbstractFloat, F}
+        jitter = zero(eltype(X_left)),
+    ) where {F}
     size(X_left, 2) == size(X_right, 2) ||
         throw(DimensionMismatch("point sets must share feature dimension"))
     ncols = size(X_left, 2)
-    scale_values = _stationary_scale_values(T, ncols, scales)
+    scale_values = _stationary_scale_values(ncols, scales)
     scaled_left, norms_left = _scaled_inputs_and_norms(X_left, scale_values)
     if X_left === X_right
         scaled_right = scaled_left
@@ -66,13 +66,15 @@ function StationaryKernelMatrix(
     else
         scaled_right, norms_right = _scaled_inputs_and_norms(X_right, scale_values)
     end
+    # Promote jitter to match the element type of scaled data
+    T_scaled = eltype(scaled_left)
     return StationaryKernelMatrix(
         scaled_left,
         scaled_right,
         norms_left,
         norms_right,
         ϕ,
-        jitter,
+        T_scaled(jitter),
     )
 end
 
@@ -88,7 +90,7 @@ function StationaryKernelMatrix(
         norms_right::TW,
         ϕ::F,
         jitter::T,
-    ) where {T <: AbstractFloat, TX <: AbstractMatrix{T}, TY <: AbstractMatrix{T}, TV <: AbstractVector{T}, TW <: AbstractVector{T}, F}
+    ) where {T <: Real, TX <: AbstractMatrix{T}, TY <: AbstractMatrix{T}, TV <: AbstractVector{T}, TW <: AbstractVector{T}, F}
     return StationaryKernelMatrix{T, TX, TY, TV, TW, F}(
         scaled_left,
         scaled_right,
@@ -113,7 +115,7 @@ function LinearAlgebra.mul!(
         v::AbstractVector{T};
         iblock::Integer = 1024,
         jblock::Integer = 8192,
-    ) where {T <: AbstractFloat}
+    ) where {T <: Real}
     n_rows = size(K, 1)
     n_cols = size(K, 2)
     if length(y) != n_rows || length(v) != n_cols
@@ -167,7 +169,7 @@ end
 Allocate the result of the matrix–vector product `K * v` using the lazy
 `tiled` multiplication defined in `mul!`.
 """
-function Base.:*(K::StationaryKernelMatrix{T}, v::AbstractVector{T}) where {T <: AbstractFloat}
+function Base.:*(K::StationaryKernelMatrix{T}, v::AbstractVector{T}) where {T <: Real}
     y = similar(v, T, size(K, 1))
     return LinearAlgebra.mul!(y, K, v)
 end
@@ -231,12 +233,12 @@ function Base.getindex(
 end
 
 """
-    kernelmatrix(K::StationaryKernelMatrix)
+    Matrix(K::StationaryKernelMatrix)
 
 Materialise the full covariance matrix corresponding to `K`. The method keeps
 all computation on the same device as `K` by leveraging GEMM calls.
 """
-function kernelmatrix(K::StationaryKernelMatrix{T}) where {T <: AbstractFloat}
+function Base.Matrix(K::StationaryKernelMatrix{T}) where {T <: Real}
     n_rows, n_cols = size(K)
     gram = similar(K.scaled_left, T, n_rows, n_cols)
     LinearAlgebra.mul!(gram, K.scaled_left, K.scaled_right', -2, zero(T))

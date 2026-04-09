@@ -1,6 +1,7 @@
 [deps]
 AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
@@ -30,4 +31,5 @@ Polynomials = "4"
 QuadGK = "2"
 Random = "1"
 SparseArrays = "1.8"
+ChainRulesCore = "1"
 Test = "1"
