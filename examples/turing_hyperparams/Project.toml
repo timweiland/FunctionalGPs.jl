@@ -1,0 +1,8 @@
+[deps]
+AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+FunctionalGPs = "9c281965-9d98-4de5-9c8e-371bea37d9e9"
+KernelFunctions = "ec8451be-7e33-11e9-00cf-bbf324bd1392"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
