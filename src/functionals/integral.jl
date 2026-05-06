@@ -47,7 +47,8 @@ struct VectorizedLebesgueIntegral{T <: Domain} <: AbstractLinearFunctional
 
     Construct an integration functional from individual domains.
     """
-    VectorizedLebesgueIntegral(domains...) = VectorizedLebesgueIntegral(domains)
+    VectorizedLebesgueIntegral(domains::Domain...) =
+        VectorizedLebesgueIntegral(collect(domains))
 end
 
 output_shape(ℒ::VectorizedLebesgueIntegral) = size(ℒ.domains)
