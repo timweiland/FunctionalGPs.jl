@@ -56,6 +56,9 @@ include("functionals/test_vectorized_lebesgue_integral.jl")
 include("functionals/test_integral_derivative_interplay.jl")
 include("functionals/test_factorized_integrals.jl")
 
+# === GPs ===
+include("gps/test_functional_gaussian.jl")
+
 # === Integration tests ===
 include("test_sin_regression.jl")
 include("problems/test_heat.jl")
