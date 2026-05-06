@@ -102,7 +102,7 @@ marg_yq = marginal(fg, (:y, :q))
 y_obs = sin.(2π .* X) .+ 0.1 .* randn(length(X))
 σ² = 0.01
 
-post = condition(fg, (; y = y_obs); noise = (; y = σ²))
+post = posterior(fg, (; y = y_obs); noise = (; y = σ²))
 @show keys(post)                   # (:dy, :q) — y was observed, the rest are latent
 
 # Each entry is a LazyMvNormal — same lazy/structured semantics
@@ -113,7 +113,7 @@ mean(post.q)
 # Observe MULTIPLE blocks at once.  Useful when both function values and
 # integral measurements are available simultaneously.
 q_obs = [0.0]                      # ∫_0^1 sin(2πx) dx ≈ 0
-post2 = condition(
+post2 = posterior(
     fg, (; y = y_obs, q = q_obs); noise = (; y = σ², q = 1.0e-8),
 )
 @show keys(post2)                  # (:dy,)
@@ -140,23 +140,8 @@ ll3 = loglikelihood(
 
 @show ll ll2 ll3
 
-# Turing sketch (commented out — needs Turing.jl):
-#
-# using Turing
-#
-# @model function derivative_regression(y_obs, X, Xd)
-#     ell    ~ LogNormal(0, 1)
-#     sigma2 ~ Exponential(1)
-#     f      = GP(with_lengthscale(SqExponentialKernel(), ell))
-#     fg     = FunctionalGaussian(f;
-#         y  = EvaluationFunctional(X),
-#         dy = EvaluationFunctional(Xd) ∘ PartialDerivative((1,)),
-#     )
-#     Turing.@addlogprob! loglikelihood(fg, (; y = y_obs); noise = (; y = sigma2))
-#     return fg
-# end
-#
-# chain = sample(derivative_regression(y_obs, X, Xd), NUTS(), 1000)
+# For a runnable Turing hyperparameter-inference example, see
+# examples/turing_hyperparams/turing_inference.jl (separate Project.toml).
 
 # ---------------------------------------------------------------------------
 # 8. Joint as a flat MvNormal (eager — for code that needs Distributions.jl)

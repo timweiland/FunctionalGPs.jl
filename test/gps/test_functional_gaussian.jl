@@ -1,7 +1,9 @@
 using FunctionalGPs
 using AbstractGPs
+using KernelFunctions: with_lengthscale, SqExponentialKernel
 using LinearAlgebra
 using Distributions
+using ForwardDiff
 using Test
 
 @testset "FunctionalGaussian" begin
@@ -58,12 +60,12 @@ using Test
         @test mean(mvn_yq)[end:end] ≈ mean(L_q(f))
     end
 
-    @testset "Conditioning matches GP-posterior route" begin
+    @testset "posterior matches GP-posterior route" begin
         fg = fg_ydq()
         y_obs = [0.1, 0.5, 0.9]
         σ² = 0.01
 
-        post = condition(fg, (; y = y_obs); noise = (; y = σ²))
+        post = posterior(fg, (; y = y_obs); noise = (; y = σ²))
         @test keys(post) == (:dy, :q)
 
         f_post = condition_on_observation(f, L_y, y_obs; noise = σ²)
@@ -74,13 +76,13 @@ using Test
         end
     end
 
-    @testset "Conditioning on multiple blocks" begin
+    @testset "posterior on multiple observed blocks" begin
         fg = fg_ydq()
         y_obs = [0.1, 0.5, 0.9]
         q_obs = [0.4]
         σ² = 0.01
 
-        post = condition(fg, (; y = y_obs, q = q_obs); noise = (; y = σ², q = 1.0e-8))
+        post = posterior(fg, (; y = y_obs, q = q_obs); noise = (; y = σ², q = 1.0e-8))
         @test keys(post) == (:dy,)
 
         f_post = condition_on_observation(f, L_y, y_obs; noise = σ²)
@@ -171,20 +173,43 @@ using Test
         @test ll_v isa BigFloat
     end
 
+    @testset "ForwardDiff through loglikelihood" begin
+        # Exercise the actual Turing inference shape: kernel hyperparameter and
+        # noise variance both come in as Duals, kernel + GP + FunctionalGaussian
+        # are rebuilt from scratch, and the gradient must trace through block
+        # assembly, noise assembly, symmetrisation, Cholesky, and logpdf.
+        X_train = collect(0.0:0.2:1.0)
+        y_train = sin.(2π .* X_train)
+
+        function nll(θ)
+            logell, logσ² = θ
+            kk = with_lengthscale(SqExponentialKernel(), exp(logell))
+            ff = GP(kk)
+            fg_h = FunctionalGaussian(ff; y = EvaluationFunctional(X_train))
+            return -loglikelihood(fg_h, (; y = y_train); noise = (; y = exp(logσ²)))
+        end
+
+        θ0 = [log(0.5), log(0.1)]
+        @test isfinite(nll(θ0))
+        g = ForwardDiff.gradient(nll, θ0)
+        @test all(isfinite, g)
+        @test !iszero(g)
+    end
+
     @testset "Error handling" begin
         fg = fg_yd()
 
         @test_throws ArgumentError FunctionalGaussian(f, NamedTuple())
         @test_throws ArgumentError block_range(fg, :nope)
         @test_throws ArgumentError marginal(fg, :nope)
-        @test_throws ArgumentError condition(fg, (; nope = [0.0]))
-        @test_throws ArgumentError condition(
+        @test_throws ArgumentError posterior(fg, (; nope = [0.0]))
+        @test_throws ArgumentError posterior(
             fg, (; y = [0.1, 0.5, 0.9]); noise = (; dy = 0.01),
         )
-        @test_throws ArgumentError condition(
+        @test_throws ArgumentError posterior(
             fg, (; y = [0.1, 0.5, 0.9], dy = [0.0, 0.0]),
         )
-        @test_throws DimensionMismatch condition(
+        @test_throws DimensionMismatch posterior(
             fg, (; y = [0.1, 0.5, 0.9]); noise = (; y = [0.01, 0.02]),
         )
     end

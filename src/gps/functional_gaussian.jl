@@ -1,4 +1,4 @@
-import AbstractGPs: AbstractGP
+import AbstractGPs: AbstractGP, posterior
 import Distributions: AbstractMvNormal, MvNormal, logpdf, loglikelihood
 import Distributions
 import Statistics: mean, cov, var
@@ -6,7 +6,7 @@ using LinearAlgebra
 using BlockArrays
 import Random: AbstractRNG
 
-export FunctionalGaussian, LazyMvNormal, block_range, marginal, as_mvn, condition
+export FunctionalGaussian, LazyMvNormal, block_range, marginal, as_mvn
 
 """
     LazyMvNormal{T, M, S} <: AbstractMvNormal
@@ -124,7 +124,7 @@ fg = FunctionalGaussian(f; y = L_y, dy = L_dy)
 mean(fg)              # joint mean (length 5)
 cov(fg, :y, :dy)      # cross-covariance block
 marginal(fg, :dy)     # MvNormal over the dy block
-post = condition(fg, (; y = y_obs); noise = (; y = σ²))
+post = posterior(fg, (; y = y_obs); noise = (; y = σ²))
 loglikelihood(fg, (; y = y_obs); noise = (; y = σ²))
 ```
 """
@@ -310,22 +310,24 @@ function _concat_ranges(fg::FunctionalGaussian, names::Tuple{Vararg{Symbol}})
 end
 
 """
-    condition(fg::FunctionalGaussian, observed::NamedTuple; noise::NamedTuple = (;)) -> NamedTuple
+    AbstractGPs.posterior(fg::FunctionalGaussian, observed::NamedTuple; noise::NamedTuple = (;)) -> NamedTuple
 
 Condition the joint Gaussian on observed values for a subset of named blocks
 and return the conditional distributions over the remaining blocks.
+
+This extends `AbstractGPs.posterior`. `AbstractGPs.posterior(::GP, ...)` returns
+a posterior process; this method returns a NamedTuple of named finite-block
+posteriors, one [`LazyMvNormal`](@ref) per latent block.
 
 `observed` is a NamedTuple mapping block names to observed values. `noise`
 optionally maps observed block names to additive Gaussian noise (a scalar
 variance, a vector of variances, or a covariance matrix). Blocks not present
 in `noise` are treated as noise-free.
 
-Returns a NamedTuple with one entry per latent (i.e., not observed) block;
-each entry is a [`LazyMvNormal`](@ref). The latent posterior covariance comes
-out of a Cholesky solve and is materially dense, but `LazyMvNormal` defers
-factorisation so `mean`/`cov`/`var` access remains cheap.
+The posterior covariance comes from a Cholesky solve and is dense, but
+`LazyMvNormal` defers factorisation so `mean`/`cov`/`var` access remains cheap.
 """
-function condition(
+function posterior(
         fg::FunctionalGaussian,
         observed::NamedTuple;
         noise::NamedTuple = NamedTuple(),
@@ -437,7 +439,7 @@ end
 
 # Pick an element type wide enough to hold both the joint covariance and any
 # user-supplied noise. Keeping this generic is what lets `loglikelihood` /
-# `condition` work under ForwardDiff Duals or BigFloat hyperparameters.
+# `posterior` work under ForwardDiff Duals or BigFloat hyperparameters.
 _noise_eltype(Σ, noise::NamedTuple) = isempty(noise) ? eltype(Σ) :
     promote_type(eltype(Σ), map(_eltype_of, values(noise))...)
 _eltype_of(x::Real) = typeof(x)
