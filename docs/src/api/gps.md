@@ -72,7 +72,7 @@ to obtain the distribution of the transformed quantity:
 f = GP(Matern52Kernel())
 
 # Distribution of integral over [0, 1]
-ℒ = VectorizedLebesgueIntegral(ClosedInterval(0.0, 1.0))
+ℒ = VectorizedLebesgueIntegral(Interval(0.0, 1.0))
 integral_dist = ℒ(f)  # Returns MvNormal
 
 # For a posterior GP
@@ -82,3 +82,11 @@ posterior_integral = ℒ(f_post; noise=1e-6)
 
 This works because linear functionals preserve Gaussianity: if `f ~ GP(m, k)`,
 then `ℒ(f) ~ Normal(ℒ(m), ℒ(ℒ(k)))`.
+
+## See also
+
+For models that need to bundle several linear functionals of the same GP into
+a single joint Gaussian — preserving the cross-covariances between blocks
+that are otherwise dropped by independent per-functional treatment, e.g.
+inside a Turing or DynamicPPL model — see the **Joint Functional Gaussians**
+page in this API Reference.

@@ -2,6 +2,7 @@ using Documenter
 using DocumenterVitepress
 using FunctionalGPs
 using KernelFunctions
+using AbstractGPs
 
 makedocs(;
     modules = [FunctionalGPs],
@@ -17,10 +18,12 @@ makedocs(;
         "Home" => "index.md",
         "API Reference" => [
             "Functionals" => "api/functionals.md",
+            "Notation" => "api/notation.md",
             "Kernels" => "api/kernels.md",
             "Domains" => "api/domains.md",
             "Cross-Covariance" => "api/crosscov.md",
             "GP Conditioning" => "api/gps.md",
+            "Joint Functional Gaussians" => "api/functional_gaussian.md",
             "Specializations" => "api/specializations.md",
         ],
     ],

@@ -47,24 +47,49 @@ using Pkg
 Pkg.add("FunctionalGPs")
 ```
 
+### GP regression with mixed observations
+
 ```julia
 using FunctionalGPs
 using AbstractGPs
 
-# GP with Wendland kernel
 k = WendlandKernel(1, 2, 1.0)
 f = GP(k)
 
 # Condition on function values
-obs = LinearObservation(EvaluationFunctional([0.0, 1.0]), [0.0, 0.84], 1e-8)
-f1 = condition_on(f, obs)
+f1 = condition_on_observation(f, [0.0, 1.0], [0.0, 0.84]; noise = 1.0e-8)
 
-# Condition on derivative observations
-dx = PartialDerivative((1,))
-L = EvaluationFunctional([0.5]) ∘ dx
-obs2 = LinearObservation(L, [1.0], 1e-8)
-f2 = condition_on(f1, obs2)
+# Condition further on a derivative observation
+∂x = PartialDerivative((1,))
+ℒ = EvaluationFunctional([0.5]) ∘ ∂x
+f2 = condition_on_observation(f1, ℒ, [1.0]; noise = 1.0e-8)
 ```
+
+### Joint functional Gaussians
+
+For models that bundle several linear functionals of the same GP — function
+values, derivatives, integrals — and need their cross-covariances preserved
+(e.g. for hyperparameter inference in Turing), use [`FunctionalGaussian`](@ref):
+
+```julia
+using FunctionalGPs, FunctionalGPs.Notation
+
+fg = FunctionalGaussian(f;
+    y  = δ(X_obs),
+    dy = δ(X_pred) ∘ ∂(1),
+    q  = ∫([Interval(0.0, 1.0)]),
+)
+
+# Marginal log-likelihood for hyperparameter optimisation / sampling
+ℓ = loglikelihood(fg, (; y = y_obs); noise = (; y = σ²))
+
+# Posterior over the latent (unobserved) blocks
+post = posterior(fg, (; y = y_obs); noise = (; y = σ²))
+post.dy   # LazyMvNormal over derivative locations
+```
+
+See the **Joint Functional Gaussians** and **Notation** pages in the API
+Reference for details.
 
 ## Related Packages
 
