@@ -29,6 +29,9 @@ include("composition/composition.jl")
 include("gps/gps.jl")
 include("problems/problems.jl")
 
+# === Notation submodule (opt-in math-style aliases) ===
+include("notation.jl")
+
 # include("hyperopt/hyperopt.jl")  # Still disabled
 
 # === AD support ===
