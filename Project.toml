@@ -3,6 +3,12 @@ uuid = "9c281965-9d98-4de5-9c8e-371bea37d9e9"
 authors = ["Tim Weiland <hello@timwei.land> and contributors"]
 version = "0.1.0-DEV"
 
+[weakdeps]
+GaussianMarkovRandomFields = "d5f06795-35bb-4323-9f0b-405ef76cfc5b"
+
+[extensions]
+FunctionalGPsGMRFsExt = "GaussianMarkovRandomFields"
+
 [deps]
 AbstractGPs = "99985d1d-32ba-4be9-9821-2ec096f28918"
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
@@ -51,16 +57,18 @@ SpecialFunctions = "2"
 Statistics = "1.10"
 Test = "1"
 ToeplitzMatrices = "0.8"
-julia = "1.8"
+GaussianMarkovRandomFields = "0.10"
+julia = "1.9"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+GaussianMarkovRandomFields = "d5f06795-35bb-4323-9f0b-405ef76cfc5b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ReTest = "e0db7c4e-2690-44b9-bad6-7687da720f89"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["ReTest", "Test", "AbstractGPs", "Aqua", "BlockArrays", "ChainRulesCore", "FiniteDifferences", "ForwardDiff", "KernelFunctions", "Kronecker", "LinearAlgebra", "Distributions", "Random", "SparseArrays"]
+test = ["ReTest", "Test", "AbstractGPs", "Aqua", "BlockArrays", "ChainRulesCore", "FiniteDifferences", "ForwardDiff", "GaussianMarkovRandomFields", "KernelFunctions", "Kronecker", "LinearAlgebra", "Distributions", "Random", "SparseArrays"]

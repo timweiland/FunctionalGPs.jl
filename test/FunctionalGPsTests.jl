@@ -62,6 +62,9 @@ include("gps/test_functional_gaussian.jl")
 # === Notation submodule ===
 include("test_notation.jl")
 
+# === Vecchia / GMRF bridge ===
+include("test_vecchia.jl")
+
 # === Integration tests ===
 include("test_sin_regression.jl")
 include("problems/test_heat.jl")

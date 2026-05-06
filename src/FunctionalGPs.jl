@@ -29,6 +29,11 @@ include("composition/composition.jl")
 include("gps/gps.jl")
 include("problems/problems.jl")
 
+# === Vecchia approximation interface ===
+# Categorisation/coordinates/policy live here; the GMRF-returning method for
+# `vecchia(::FunctionalGaussian)` is in ext/FunctionalGPsGMRFsExt.jl.
+include("vecchia/main.jl")
+
 # === Notation submodule (opt-in math-style aliases) ===
 include("notation.jl")
 
