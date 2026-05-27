@@ -49,6 +49,37 @@ function FunctionalGPs.block_range(
     return md[name]
 end
 
+"""
+    nameview(g::MetaGMRF{<:NamedBlockMetadata}, x::AbstractVector) -> NamedTuple
+
+Return a NamedTuple of views into `x`, one per named block of `g`. Lets a
+DPPL `@model` body access named blocks without manually carrying
+`block_range(...)` lookups:
+
+```julia
+g = vecchia(fg)
+x ~ g
+blocks = nameview(g, x)
+blocks.u[i]      # view into x for the :u block
+blocks.uxx[i]    # ditto for :uxx
+```
+
+`x` must have the same length as the GMRF.
+"""
+function FunctionalGPs.nameview(
+        g::MetaGMRF{<:NamedBlockMetadata}, x::AbstractVector,
+    )
+    length(x) == length(g) || throw(
+        DimensionMismatch(
+            "x has length $(length(x)) but GMRF has length $(length(g))"
+        )
+    )
+    ranges = g.metadata.ranges
+    return NamedTuple{keys(ranges)}(
+        ntuple(i -> view(x, ranges[keys(ranges)[i]]), length(keys(ranges)))
+    )
+end
+
 # Reorder block indices by category priority. Returns a permutation of
 # 1:n_blocks giving the visit order (leftmost = finest, rightmost = coarsest).
 function _block_visit_order(

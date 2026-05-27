@@ -1,4 +1,4 @@
-export vecchia, OrderingStrategy
+export vecchia, nameview, OrderingStrategy
 
 """
     OrderingStrategy
@@ -76,3 +76,13 @@ Without `using GaussianMarkovRandomFields`, calling `vecchia(fg)` errors
 with a clear "extension not loaded" message.
 """
 function vecchia end
+
+"""
+    nameview(g, x) -> NamedTuple
+
+Return a NamedTuple of views into the latent vector `x`, one per named block
+of the structured Gaussian `g`. Implementations live in package extensions
+(currently `FunctionalGPsGMRFsExt` for `MetaGMRF{NamedBlockMetadata}` produced
+by `vecchia(fg)`).
+"""
+function nameview end

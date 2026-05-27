@@ -1,4 +1,4 @@
-export VectorizedLebesgueIntegral
+export VectorizedLebesgueIntegral, IntegralFunctional
 
 """
     VectorizedLebesgueIntegral{T <: Domain} <: AbstractLinearFunctional
@@ -14,17 +14,17 @@ observations, and integral constraints.
 
 # Example
 ```julia
-using DomainSets
+using FunctionalGPs
 
 # Single interval integration
-∫ = VectorizedLebesgueIntegral(Interval(0, 1))
+∫ = VectorizedLebesgueIntegral(Interval(0.0, 1.0))
 
 # Multiple intervals (vectorized)
-intervals = [Interval(0, 1), Interval(1, 2), Interval(2, 3)]
+intervals = [Interval(0.0, 1.0), Interval(1.0, 2.0), Interval(2.0, 3.0)]
 ∫_vec = VectorizedLebesgueIntegral(intervals)
 
 # 2D box integration
-box = Box([0.0, 0.0], [1.0, 1.0])
+box = BoxDomain((0.0, 1.0), (0.0, 1.0))
 ∫_2d = VectorizedLebesgueIntegral(box)
 ```
 
@@ -52,3 +52,12 @@ struct VectorizedLebesgueIntegral{T <: Domain} <: AbstractLinearFunctional
 end
 
 output_shape(ℒ::VectorizedLebesgueIntegral) = size(ℒ.domains)
+
+"""
+    IntegralFunctional
+
+Alias for [`VectorizedLebesgueIntegral`](@ref). The shorter name reads
+better alongside `EvaluationFunctional` and `PartialDerivative` in
+narrative code.
+"""
+const IntegralFunctional = VectorizedLebesgueIntegral

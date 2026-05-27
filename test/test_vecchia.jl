@@ -69,4 +69,18 @@ end
     g_simp = vecchia(fg; λ = nothing)
     @test g_simp isa MetaGMRF
     @test length(g_simp) == length(fg)
+
+    # nameview slices a flat latent into per-block NamedTuple views.
+    x = randn(length(g))
+    nv = nameview(g, x)
+    @test nv isa NamedTuple
+    @test keys(nv) == (:y, :dy, :q)
+    @test nv.y == view(x, block_range(g, :y))
+    @test nv.dy == view(x, block_range(g, :dy))
+    @test nv.q == view(x, block_range(g, :q))
+    # Writes through the view mutate the underlying latent.
+    nv.y[1] = 42.0
+    @test x[block_range(g, :y).start] == 42.0
+    # Length mismatch errors clearly.
+    @test_throws DimensionMismatch nameview(g, randn(length(g) + 1))
 end

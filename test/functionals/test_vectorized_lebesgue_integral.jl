@@ -13,6 +13,12 @@ using FunctionalGPs
         @test length(ℒ_two.domains) == 2
     end
 
+    @testset "IntegralFunctional alias" begin
+        i1 = Interval(0.0, 1.0)
+        @test IntegralFunctional === VectorizedLebesgueIntegral
+        @test IntegralFunctional(i1) isa VectorizedLebesgueIntegral
+    end
+
     @testset "One-sided application" begin
         w = WendlandKernel(1, 3, 7 // 10)
         domains = intervals_from_endpoints(range(0, 4; step = 0.3))
