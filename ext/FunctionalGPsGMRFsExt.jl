@@ -191,7 +191,9 @@ function FunctionalGPs.vecchia(
     Q = Q_perm[P_inv, P_inv]
 
     n_total = sum(length, block_indices)
-    inner = GMRF(zeros(n_total), Q)
+    # Use the kernel-induced eltype so the mean propagates ForwardDiff Duals
+    # (or any other AD eltype) when the kernel is parameterised by a hyperparam.
+    inner = GMRF(zeros(eltype(Q), n_total), Q)
     md = NamedBlockMetadata(NamedTuple{Tuple(names)}(Tuple(block_indices)))
     return MetaGMRF(inner, md)
 end
