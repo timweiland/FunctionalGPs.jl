@@ -1,7 +1,7 @@
 name = "FunctionalGPs"
 uuid = "9c281965-9d98-4de5-9c8e-371bea37d9e9"
 authors = ["Tim Weiland <hello@timwei.land> and contributors"]
-version = "0.1.0-DEV"
+version = "0.1.0"
 
 [weakdeps]
 GaussianMarkovRandomFields = "d5f06795-35bb-4323-9f0b-405ef76cfc5b"
