@@ -2,3 +2,22 @@
 
 # Coverage
 lcov.info
+coverage/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+
+# Local-only working files
+/scratch/
+/build/
+
+# Documentation build artifacts
+/docs/build/
+/docs/node_modules/
+/docs/package-lock.json
+/docs/Manifest.toml
+
+# Per-example Manifests (lock files are environment-specific)
+/examples/**/Manifest.toml
+/test/Manifest.toml

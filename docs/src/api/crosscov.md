@@ -120,7 +120,7 @@ tensor_pv = pv_x ⊗ pv_y
 ### Integration
 
 ```julia
-using DomainSets
+using FunctionalGPs
 
 # Create integral functional
 domains = [Interval(0.0, 0.5), Interval(0.5, 1.0)]

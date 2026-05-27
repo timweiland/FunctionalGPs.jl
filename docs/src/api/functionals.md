@@ -22,14 +22,16 @@ X = [0.0, 0.5, 1.0]
 
 ```julia
 using FunctionalGPs
-using DomainSets
 
 # Integrate over an interval
-∫ = VectorizedLebesgueIntegral(Interval(0, 1))
+∫ = VectorizedLebesgueIntegral(Interval(0.0, 1.0))
 
 # Integrate over multiple intervals
-intervals = [Interval(0, 1), Interval(1, 2)]
+intervals = [Interval(0.0, 1.0), Interval(1.0, 2.0)]
 ∫_vec = VectorizedLebesgueIntegral(intervals)
+
+# `IntegralFunctional` is a shorter alias for the same type
+∫ = IntegralFunctional(Interval(0.0, 1.0))
 ```
 
 ### Derivative Evaluation
@@ -91,6 +93,7 @@ EvaluationFunctional
 
 ```@docs
 VectorizedLebesgueIntegral
+IntegralFunctional
 ```
 
 ### Differential Operators
