@@ -4,7 +4,7 @@ import Distributions
 import Statistics: mean, cov, var
 using LinearAlgebra
 using BlockArrays
-import Random: AbstractRNG
+import Random: AbstractRNG, default_rng
 
 export FunctionalGaussian, LazyMvNormal, block_range, marginal, as_mvn
 
@@ -271,6 +271,46 @@ function as_mvn(fg::FunctionalGaussian)
     Σ = Matrix(getfield(fg, :Σ))
     Σ = (Σ + Σ') / 2
     return MvNormal(Vector(getfield(fg, :μ)), Σ)
+end
+
+"""
+    rand([rng::AbstractRNG], fg::FunctionalGaussian) -> NamedTuple
+    rand([rng::AbstractRNG], fg::FunctionalGaussian, n::Integer) -> NamedTuple
+
+Draw samples from the joint distribution and return them split by block.
+
+The returned NamedTuple has the same keys as `fg`. A single draw maps each key
+to a `Vector`; `n` draws map each key to a `Matrix` whose columns are samples.
+
+Materialises and Cholesky-factorises the joint covariance on every call. For
+repeated sampling, build `as_mvn(fg)` once, draw from it, and split the result
+yourself via `block_range(fg, name)`.
+"""
+function Base.rand(rng::AbstractRNG, fg::FunctionalGaussian)
+    return _split_sample(fg, rand(rng, as_mvn(fg)))
+end
+
+function Base.rand(rng::AbstractRNG, fg::FunctionalGaussian, n::Integer)
+    return _split_samples(fg, rand(rng, as_mvn(fg), n))
+end
+
+Base.rand(fg::FunctionalGaussian) = rand(default_rng(), fg)
+Base.rand(fg::FunctionalGaussian, n::Integer) = rand(default_rng(), fg, n)
+
+function _split_sample(fg::FunctionalGaussian, x::AbstractVector)
+    names = keys(fg)
+    parts = ntuple(length(names)) do i
+        return x[block_range(fg, names[i])]
+    end
+    return NamedTuple{names}(parts)
+end
+
+function _split_samples(fg::FunctionalGaussian, X::AbstractMatrix)
+    names = keys(fg)
+    parts = ntuple(length(names)) do i
+        return X[block_range(fg, names[i]), :]
+    end
+    return NamedTuple{names}(parts)
 end
 
 """
