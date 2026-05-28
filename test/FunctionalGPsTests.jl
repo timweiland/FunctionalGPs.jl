@@ -44,6 +44,7 @@ include("operators/test_partial_derivative.jl")
 include("operators/test_pd_wendland.jl")
 include("operators/test_linear_diffop.jl")
 include("operators/test_evaluation.jl")
+include("operators/test_identity.jl")
 
 # === Functionals ===
 include("functionals/test_linear_functional.jl")
