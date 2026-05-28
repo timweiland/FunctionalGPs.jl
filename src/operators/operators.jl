@@ -20,6 +20,9 @@ include("sum.jl")
 include("scale.jl")
 include("concatenate.jl")
 
+# Identity (zeroth-order term in operator algebra)
+include("identity.jl")
+
 # Differential operators
 include("differential.jl")
 include("partial_derivative.jl")
