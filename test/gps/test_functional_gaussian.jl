@@ -4,6 +4,7 @@ using KernelFunctions: with_lengthscale, SqExponentialKernel
 using LinearAlgebra
 using Distributions
 using ForwardDiff
+using Random
 using Test
 
 @testset "FunctionalGaussian" begin
@@ -150,6 +151,38 @@ using Test
         mvn = MvNormal(fg_struct.a)
         @test mvn isa MvNormal
         @test cov(mvn) ≈ Matrix(cov(fg_struct, :a))
+    end
+
+    @testset "rand returns NamedTuple of samples" begin
+        fg = fg_ydq()
+        rng = MersenneTwister(42)
+
+        s = rand(rng, fg)
+        @test s isa NamedTuple
+        @test keys(s) == keys(fg)
+        @test s.y isa AbstractVector && length(s.y) == length(X)
+        @test s.dy isa AbstractVector && length(s.dy) == length(Xd)
+        @test s.q isa AbstractVector && length(s.q) == 1
+
+        # Concatenating the block samples equals a draw from `as_mvn(fg)` under
+        # the same RNG — the split is index-preserving, not a re-draw.
+        rng2 = MersenneTwister(42)
+        x_flat = rand(rng2, as_mvn(fg))
+        @test vcat(s.y, s.dy, s.q) ≈ x_flat
+
+        # Multi-sample form returns matrices with n columns per block.
+        n = 4
+        S = rand(MersenneTwister(7), fg, n)
+        @test keys(S) == keys(fg)
+        @test size(S.y) == (length(X), n)
+        @test size(S.dy) == (length(Xd), n)
+        @test size(S.q) == (1, n)
+
+        # No-RNG forms exist and return the right shape.
+        s0 = rand(fg)
+        @test keys(s0) == keys(fg)
+        S0 = rand(fg, 3)
+        @test size(S0.y) == (length(X), 3)
     end
 
     @testset "_block_matmul dimension check" begin
