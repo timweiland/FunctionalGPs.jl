@@ -38,12 +38,11 @@ have to hand-roll anything for the common cases.
 
 ## Installation
 
-FunctionalGPs.jl is not yet in the Julia General registry. Install from
-GitHub:
+FunctionalGPs.jl is available in the Julia General registry:
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/timweiland/FunctionalGPs.jl")
+Pkg.add("FunctionalGPs")
 ```
 
 This is an **alpha** release: the API will change. Pin a specific version
