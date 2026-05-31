@@ -45,11 +45,11 @@ you can build mixed-observation models without paying a hand-tuned-code tax.
 
 ## Installation
 
-FunctionalGPs.jl is not yet registered. Install from GitHub:
+FunctionalGPs.jl is registered in the Julia General registry:
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/timweiland/FunctionalGPs.jl")
+Pkg.add("FunctionalGPs")
 ```
 
 ## Quick start
@@ -84,6 +84,7 @@ fg = FunctionalGaussian(f;
     q  = ∫([Interval(0.0, 1.0)]),
 )
 
+s    = rand(fg)             # joint prior draw as a NamedTuple (; y, dy, q)
 ℓ    = loglikelihood(fg, (; y = y_obs); noise = (; y = σ²))
 post = posterior(fg,    (; y = y_obs); noise = (; y = σ²))
 post.dy   # LazyMvNormal over derivative locations
