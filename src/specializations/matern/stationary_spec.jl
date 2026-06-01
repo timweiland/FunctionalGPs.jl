@@ -13,8 +13,13 @@ function stationary_kernel_spec(
         ::Type{T},
     ) where {P, T <: Real}
     sqrt_2nu = sqrt(T(2 * P + 1))
-    # Don't convert lengthscales to T — they may carry AD dual numbers
-    scales = collect(sqrt_2nu ./ k.lengthscales)
+    # Don't convert lengthscales to T — they may carry AD dual numbers.
+    # Normalise scalar lengthscales to a 1-element vector: a scalar lengthscale
+    # is allowed by the constructor, but `collect` of a scalar yields a 0-dim
+    # array, which the `StationaryKernelSpec` constructor (TS <: AbstractVector)
+    # rejects. Broadcasting over the vector always returns a proper Vector.
+    lengthscales = k.lengthscales isa AbstractVector ? k.lengthscales : [k.lengthscales]
+    scales = sqrt_2nu ./ lengthscales
     radial_map = let kernel = k
         r2 -> begin
             r = _safe_dist(r2)
