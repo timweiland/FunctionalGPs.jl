@@ -68,3 +68,7 @@ end
 function Base.:+(op1::AbstractSumLinearFunctional, op2::AbstractSumLinearFunctional)
     return SumLinearFunctional((summands(op1)..., summands(op2)...))
 end
+
+function output_shape(op::SumLinearFunctional)
+    return output_shape(summands(op)[1])
+end
