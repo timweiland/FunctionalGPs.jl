@@ -89,13 +89,18 @@ function (op::ConstantScaledLinearFunctionOperator)(
     )
 end
 
-# ConstantScaledLinearFunctionOperator on crosscovs: fold scalars
+# ConstantScaledLinearFunctionOperator on crosscovs: fold scalars.
+# Apply the *unscaled* inner operator and fold the two scalars once — mirroring
+# the kernel-side methods above. Using the full `op` here would re-apply
+# `op.scalar`, scaling the result by `op.scalar² · pv.scalar` instead of
+# `op.scalar · pv.scalar` (the source of negative-definite covariances when a
+# negatively-scaled operator was applied to both kernel arguments).
 function (op::ConstantScaledLinearFunctionOperator)(
         pv::ConstantScaledPVCrosscov,
         args...;
         kwargs...,
     )
     return ConstantScaledPVCrosscov(
-        op(pv.pv_crosscov, args...; kwargs...), op.scalar * pv.scalar
+        linfuncop(op)(pv.pv_crosscov, args...; kwargs...), op.scalar * pv.scalar
     )
 end
