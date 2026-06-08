@@ -54,6 +54,17 @@ function (stacked::StackedLinearFunctional)(pv::ConstantScaledPVCrosscov)
 end
 
 """
+    (stacked::StackedLinearFunctional)(pv::AbstractSumPVCrosscov)
+
+Specific method to resolve ambiguity with `AbstractLinearFunctional`. Stacking
+the component functionals over a summed crosscov is equivalent to summing the
+stacked results (linearity), so we take the stack route.
+"""
+function (stacked::StackedLinearFunctional)(pv::AbstractSumPVCrosscov)
+    return _apply_to_single_pv(stacked, pv)
+end
+
+"""
     (stacked::StackedLinearFunctional)(pv_stack::StackedPVCrosscov)
 
 Apply a stacked linear functional to a StackedPVCrosscov, creating a full block matrix
