@@ -23,6 +23,9 @@ include("concatenate.jl")
 # Identity (zeroth-order term in operator algebra)
 include("identity.jl")
 
+# Select (multi-output: pick an output index)
+include("select.jl")
+
 # Differential operators
 include("differential.jl")
 include("partial_derivative.jl")

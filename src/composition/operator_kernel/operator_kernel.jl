@@ -2,4 +2,5 @@
 include("base.jl")
 include("arithmetic.jl")
 include("identity.jl")
+include("select.jl")
 include("differential_operators.jl")

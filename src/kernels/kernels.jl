@@ -1,5 +1,6 @@
 include("traits.jl")
 include("derivative.jl")
+include("multioutput.jl")
 include("linear_scale.jl")
 include("wendland.jl")
 include("matern.jl")
