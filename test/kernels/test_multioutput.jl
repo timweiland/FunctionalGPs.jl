@@ -53,6 +53,34 @@ using Random
         @test_throws Exception FunctionalGaussian(g; a = EvaluationFunctional(X1) ∘ Select(1))
     end
 
+    @testset "cross-output functional couples outputs in the posterior" begin
+        # The payoff of joint modelling: the prior is block-diagonal, but a
+        # functional mixing outputs (here: observing f1 + f2) couples them once
+        # conditioned on.
+        Xo = collect(0.0:0.25:1.0)
+        s = (EvaluationFunctional(Xo) ∘ Select(1)) + (EvaluationFunctional(Xo) ∘ Select(2))
+
+        # Var(f1 + f2) = Var(f1) + Var(f2) for independent outputs.
+        δo = EvaluationFunctional(Xo)
+        @test Matrix(s(s(kmo))) ≈ Matrix(δo(δo(k1))) + Matrix(δo(δo(k2)))
+
+        # Joint latent over both outputs at X1 as a SINGLE block, so the
+        # posterior retains their cross-covariance (per-block posteriors drop it).
+        uv = StackedLinearFunctional(
+            EvaluationFunctional(X1) ∘ Select(1),
+            EvaluationFunctional(X1) ∘ Select(2),
+        )
+        fg = FunctionalGaussian(f; uv = uv, s = s)
+        n = length(X1)
+
+        prior = Matrix(cov(fg, :uv))
+        @test all(iszero, prior[1:n, (n + 1):end])      # prior: outputs independent
+
+        post = posterior(fg, (; s = zeros(length(Xo))); noise = (; s = 1.0e-8)).uv
+        P = Matrix(cov(post))
+        @test !all(iszero, P[1:n, (n + 1):end])          # posterior: coupled
+    end
+
     @testset "posterior / rand reuse FunctionalGaussian" begin
         fg = FunctionalGaussian(f; a = ℒ1, b = ℒ2)
         y1 = sin.(2π .* X1)
