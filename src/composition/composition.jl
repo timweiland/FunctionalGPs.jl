@@ -7,4 +7,5 @@
 
 include("functional_kernel/functional_kernel.jl")
 include("functional_crosscov/functional_crosscov.jl")
+include("functional_mean_function.jl")
 include("operator_kernel/operator_kernel.jl")
