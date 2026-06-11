@@ -10,8 +10,10 @@ _functional_mean_fn_fallback(ℒ::AbstractLinFctlLinFuncOpConcat, args...; kwarg
 _functional_mean_fn_fallback(ℒ::AbstractSumLinearFunctional, args...; kwargs...) = _sum_crosscov_impl(ℒ, args...; kwargs...)
 _functional_mean_fn_fallback(ℒ::ScaledLinearFunctional, args...; kwargs...) = _scale_crosscov_impl(ℒ, args...; kwargs...)
 
-_functional_mean_fn_fallback(ℒ::StackedLinearFunctional, m, args...; kwargs...) =
-    reduce(vcat, (lf(m, args...; kwargs...) for lf in ℒ.linfunctionals))
+_functional_mean_fn_fallback(ℒ::StackedLinearFunctional, m, args...; kwargs...) = begin
+    results = [lf(m, args...; kwargs...) for lf in ℒ.linfunctionals]
+    return vcat(results...)
+end
 
 # Any linear functional applied to the zero function is zero.
 (ℒ::AbstractLinearFunctional)(::ZeroMean{T}, args...; kwargs...) where {T} = zeros(T, output_shape(ℒ)...)
