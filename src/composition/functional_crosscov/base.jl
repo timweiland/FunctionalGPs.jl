@@ -1,10 +1,5 @@
 # Generic AbstractLinearFunctional applied to PVCrosscovs → creates matrices
 
-import AbstractGPs: ZeroMean
-
-# Mean functions (needed for GP conditioning)
-(ℒ::AbstractLinearFunctional)(::ZeroMean{T}, args...) where {T} = zeros(T, output_shape(ℒ)...)
-
 # Apply to EvaluationPVCrosscov
 function (ℒ::AbstractLinearFunctional)(pv::EvaluationPVCrosscov)
     return kernelmatrix(ℒ(pv.k, arg = randproc_arg(pv)), pv.linfunc.X)

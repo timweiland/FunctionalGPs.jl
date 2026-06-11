@@ -1,14 +1,8 @@
 # SumLinearFunctional applied to PVCrosscovs → creates matrices
 
-using AbstractGPs
-
 function _sum_crosscov_impl(op::AbstractSumLinearFunctional, x, args...; kwargs...)
     return sum([summand(x, args...; kwargs...) for summand in summands(op)])
 end
-
-# Apply to ZeroMean
-(op::AbstractSumLinearFunctional)(x::ZeroMean, args...; kwargs...) =
-    _sum_crosscov_impl(op, x, args...; kwargs...)
 
 # Apply to generic ProcessVectorCrossCovariance
 function (op::AbstractSumLinearFunctional)(pv::ProcessVectorCrossCovariance, args...; kwargs...)
