@@ -1,8 +1,11 @@
 # Generic AbstractLinearFunctional applied to Kernels
 
 # Any linear functional applied to the zero kernel produces the zero crosscov.
-(ℒ::AbstractLinearFunctional)(::ZeroKernel; arg::Integer = 2) =
-    ZeroPVCrosscov(output_shape(ℒ), arg)
+function (ℒ::AbstractLinearFunctional)(::ZeroKernel; arg::Integer = 2)
+    argi = Int(arg)
+    @assert argi ∈ (1, 2)
+    return ZeroPVCrosscov(output_shape(ℒ), argi)
+end
 
 # Handle KernelSum - apply to each component
 function (ℒ::AbstractLinearFunctional)(k::KernelSum, args...; kwargs...)

@@ -25,6 +25,6 @@ function (op::Select)(cc::EvaluationPVCrosscov{2, <:SelectedKernel{<:MultiOutput
     return cc.linfunc(_resolve(op(cc.k; arg = 1)), arg = 2)
 end
 
-function (op::Select)(cc::IntegralPVCrosscov{2, <:SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer}, <:Vector})
+function (op::Select)(cc::IntegralPVCrosscov{2, <:SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer}})
     return VectorizedLebesgueIntegral(cc.domains)(_resolve(op(cc.k; arg = 1)); arg = 2)
 end

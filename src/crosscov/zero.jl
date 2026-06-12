@@ -11,6 +11,12 @@ all covariance matrices it produces are zero matrices of the appropriate size.
 struct ZeroPVCrosscov <: ProcessVectorCrossCovariance
     batch_size::Tuple{Vararg{Int}}
     randvar_arg::Int
+
+    function ZeroPVCrosscov(batch_size::Tuple, randvar_arg::Integer)
+        argi = Int(randvar_arg)
+        @assert argi ∈ (1, 2)
+        return new(Int.(batch_size), argi)
+    end
 end
 
 randvar_batch_size(pv::ZeroPVCrosscov) = pv.batch_size
