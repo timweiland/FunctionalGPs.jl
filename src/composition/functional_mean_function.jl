@@ -1,4 +1,4 @@
-import AbstractGPs: ZeroMean, MeanFunction, mean_vector
+import AbstractGPs: mean_vector
 
 function _functional_mean_fn_fallback end
 

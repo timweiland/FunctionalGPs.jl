@@ -5,6 +5,8 @@
 # - Functionals + Crosscovs → Matrices
 # - Operators + Kernels → DerivativeKernels
 
+using AbstractGPs: MeanFunction, ZeroMean
+
 include("functional_kernel/functional_kernel.jl")
 include("functional_crosscov/functional_crosscov.jl")
 include("functional_mean_function.jl")
