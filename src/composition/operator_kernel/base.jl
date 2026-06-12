@@ -1,4 +1,3 @@
-import AbstractGPs: ZeroMean
 import KernelFunctions: KernelSum, ScaledKernel
 
 ######### Mean functions #########
