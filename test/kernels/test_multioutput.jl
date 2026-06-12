@@ -81,6 +81,35 @@ using Random
         @test !all(iszero, P[1:n, (n + 1):end])          # posterior: coupled
     end
 
+    @testset "composed-operator observations on a cross block (zero short-circuit)" begin
+        # A multi-output observation whose functional uses a scaled / Identity-
+        # composed operator must give a zero cross-output block (and a correct
+        # diagonal). These compositions previously hit an ambiguous dispatch on
+        # the cross-output `ZeroPVCrosscov`.
+        other = EvaluationFunctional(X2) ∘ Select(2)
+        for (name, op) in (
+                ("scaled derivative", 2.0 * PartialDerivative((1,))),
+                ("identity", Identity()),
+            )
+            @testset "$name" begin
+                ℒop = EvaluationFunctional(X1) ∘ op ∘ Select(1)
+                fg = FunctionalGaussian(f; a = ℒop, b = other)
+                @test all(iszero, Matrix(cov(fg, :a, :b)))
+                @test all(iszero, Matrix(cov(fg, :b, :a)))   # the block that crashed
+                ref = EvaluationFunctional(X1) ∘ op
+                @test Matrix(cov(fg, :a)) ≈ Matrix(ref(ref(k1)))
+            end
+        end
+    end
+
+    @testset "integral ∘ Select" begin
+        q = VectorizedLebesgueIntegral([Interval(0.0, 1.0)]) ∘ Select(1)
+        fg = FunctionalGaussian(f; q = q, b = ℒ2)
+        qref = VectorizedLebesgueIntegral([Interval(0.0, 1.0)])
+        @test Matrix(cov(fg, :q)) ≈ Matrix(qref(qref(k1)))   # diagonal: output-1 integral cov
+        @test all(iszero, Matrix(cov(fg, :q, :b)))           # cross output → zero
+    end
+
     @testset "posterior / rand reuse FunctionalGaussian" begin
         fg = FunctionalGaussian(f; a = ℒ1, b = ℒ2)
         y1 = sin.(2π .* X1)
