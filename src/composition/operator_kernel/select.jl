@@ -20,3 +20,11 @@ end
 # has no method (→ MethodError) rather than a `::Kernel` fallback, which would be
 # ambiguous with the generic operator methods for ScaledKernel / KernelSum /
 # LinearlyScaledKernel in base.jl.
+
+function (op::Select)(cc::EvaluationPVCrosscov{2, <:SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer}, <:EvaluationFunctional})
+    return cc.linfunc(_resolve(op(cc.k; arg = 1)), arg = 2)
+end
+
+function (op::Select)(cc::IntegralPVCrosscov{2, <:SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer}, <:Vector})
+    return VectorizedLebesgueIntegral(cc.domains)(_resolve(op(cc.k; arg = 1)); arg = 2)
+end

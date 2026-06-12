@@ -25,6 +25,14 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     return k.scalar * ℒ(k.kernel; arg = arg)
 end
 
+# Disambiguation for ZeroKernel
+function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+        ::ZeroKernel;
+        arg = 2,
+    ) where {T}
+    return ZeroPVCrosscov(output_shape(ℒ), arg)
+end
+
 function cancel_integral(
         k::DerivativeKernel1D{N, M},
         ℒ::VectorizedLebesgueIntegral{Interval{T}};

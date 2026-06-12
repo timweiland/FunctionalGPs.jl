@@ -67,12 +67,6 @@ n_outputs(k::BlockDiagonalKernel) = length(k.kernels)
 
 _block(k::BlockDiagonalKernel, p::Int, q::Int) = p == q ? k.kernels[p] : ZeroKernel()
 
-# Differentiating acts on the spatial part of every output block; the block
-# structure (and hence independence) is preserved. Off-diagonal blocks stay
-# implicitly zero, so they are never differentiated.
-derivative(k::BlockDiagonalKernel, n::Int, m::Int) =
-    BlockDiagonalKernel(map(ki -> derivative(ki, n, m), k.kernels))
-
 # KernelFunctions-style evaluation on (x, p) points, for interop / sanity. The
 # functional pipeline never hits this — it goes through `Select` + the resolved
 # single-output block instead.
@@ -108,20 +102,5 @@ function _resolve(sk::SelectedKernel)
     return _block(sk.parent, sk.pin1, sk.pin2)
 end
 
-# Differentiation pushes into the parent block-diagonal kernel and keeps the
-# pins; once both pins resolve, this is `derivative(k_p, n, m)` for the surviving
-# block.
-derivative(sk::SelectedKernel, n::Int, m::Int) =
-    SelectedKernel(derivative(sk.parent, n, m), sk.pin1, sk.pin2)
 
 (sk::SelectedKernel)(x, y) = _resolve(sk)(x, y)
-
-kernel_evaluate_evaluate(sk::SelectedKernel, X) = kernel_evaluate_evaluate(_resolve(sk), X)
-kernel_evaluate_evaluate(sk::SelectedKernel, X1, X2) =
-    kernel_evaluate_evaluate(_resolve(sk), X1, X2)
-
-# Zero-block short-circuit: a cross-output block (independent outputs) resolves
-# to the zero kernel, which assembles directly to a zero matrix of the right
-# shape — no kernel arithmetic.
-kernel_evaluate_evaluate(::ZeroKernel, X) = zeros(length(X), length(X))
-kernel_evaluate_evaluate(::ZeroKernel, X1, X2) = zeros(length(X1), length(X2))

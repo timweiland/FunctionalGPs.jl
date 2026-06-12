@@ -4,6 +4,8 @@ import KernelFunctions: KernelSum, ScaledKernel
 (::AbstractLinearFunctionOperator)(::ZeroMean{T}, args...) where {T} = ZeroMean{T}()
 
 ######### PV Crosscovs #########
+(::AbstractLinearFunctionOperator)(pv::ZeroPVCrosscov) = pv
+
 function (ℒ::AbstractLinearFunctionOperator)(pv::EvaluationPVCrosscov)
     return EvaluationPVCrosscov(ℒ(pv.k; arg = randproc_arg(pv)), pv.linfunc, randvar_arg(pv))
 end

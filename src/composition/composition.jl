@@ -6,6 +6,7 @@
 # - Operators + Kernels → DerivativeKernels
 
 using AbstractGPs: MeanFunction, ZeroMean
+using KernelFunctions: ZeroKernel
 
 include("functional_kernel/functional_kernel.jl")
 include("functional_crosscov/functional_crosscov.jl")

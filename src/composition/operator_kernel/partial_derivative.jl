@@ -20,6 +20,14 @@ function (op::PartialDerivative{1, 1})(k::KernelSum; kwargs...)
     return KernelSum(map(kernel -> op(kernel; kwargs...), k.kernels))
 end
 
+function (op::PartialDerivative)(sk::SelectedKernel; arg::Integer = 2)
+    return SelectedKernel(op(sk.parent; arg = arg), sk.pin1, sk.pin2)
+end
+
+function (op::PartialDerivative)(dk::BlockDiagonalKernel; arg::Integer = 2)
+    return BlockDiagonalKernel(map(k -> op(k; arg = arg), dk.kernels))
+end
+
 function (op::PartialDerivative{1, 1})(
         k::Kernel;
         arg::Integer = 2,
@@ -48,6 +56,16 @@ function (op::PartialDerivative{1, 1})(
         arg::Integer = 2,
     )
     return LinearlyScaledKernel(op(k.kernel; arg = arg), k.scalar)
+end
+
+# Disambiguation for SelectedKernel
+function (op::PartialDerivative{1, 1})(sk::SelectedKernel; arg::Integer = 2)
+    return SelectedKernel(op(sk.parent; arg = arg), sk.pin1, sk.pin2)
+end
+
+# Disambiguation for BlockDiagonalKernel
+function (op::PartialDerivative{1, 1})(dk::BlockDiagonalKernel; arg::Integer = 2)
+    return BlockDiagonalKernel(map(k -> op(k; arg = arg), dk.kernels))
 end
 
 ########### PV Crosscovs ###########
