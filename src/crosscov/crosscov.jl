@@ -132,6 +132,7 @@ function kernelmatrix(pv::ProcessVectorCrossCovariance, X::AbstractVector)
 end
 
 # Concrete crosscov types
+include("zero.jl")
 include("evaluation.jl")
 include("integral.jl")
 include("stacked.jl")

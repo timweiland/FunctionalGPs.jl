@@ -1,5 +1,12 @@
 # Generic AbstractLinearFunctional applied to PVCrosscovs → creates matrices
 
+# Any linear functional applied to the zero crosscov produces a zero matrix.
+function (ℒ::AbstractLinearFunctional)(pv::ZeroPVCrosscov)
+    n = randvar_length(pv)
+    m = prod(output_shape(ℒ))
+    return pv.randvar_arg == 1 ? zeros(n, m) : zeros(m, n)
+end
+
 # Apply to EvaluationPVCrosscov
 function (ℒ::AbstractLinearFunctional)(pv::EvaluationPVCrosscov)
     return kernelmatrix(ℒ(pv.k, arg = randproc_arg(pv)), pv.linfunc.X)

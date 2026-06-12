@@ -1,5 +1,9 @@
 # Generic AbstractLinearFunctional applied to Kernels
 
+# Any linear functional applied to the zero kernel produces the zero crosscov.
+(ℒ::AbstractLinearFunctional)(::ZeroKernel; arg::Integer = 2) =
+    ZeroPVCrosscov(output_shape(ℒ), arg)
+
 # Handle KernelSum - apply to each component
 function (ℒ::AbstractLinearFunctional)(k::KernelSum, args...; kwargs...)
     return mapreduce((k) -> ℒ(k, args...; kwargs...), +, k.kernels)
