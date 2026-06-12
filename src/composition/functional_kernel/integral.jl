@@ -30,7 +30,9 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
         ::ZeroKernel;
         arg = 2,
     ) where {T}
-    return ZeroPVCrosscov(output_shape(ℒ), arg)
+    argi = Int(arg)
+    @assert argi ∈ (1, 2)
+    return ZeroPVCrosscov(output_shape(ℒ), argi)
 end
 
 function cancel_integral(

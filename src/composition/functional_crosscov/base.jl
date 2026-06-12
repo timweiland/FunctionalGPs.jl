@@ -4,7 +4,7 @@
 function (ℒ::AbstractLinearFunctional)(pv::ZeroPVCrosscov)
     n = randvar_length(pv)
     m = prod(output_shape(ℒ))
-    return pv.randvar_arg == 1 ? zeros(n, m) : zeros(m, n)
+    return randvar_arg(pv) == 1 ? zeros(n, m) : zeros(m, n)
 end
 
 # Apply to EvaluationPVCrosscov
