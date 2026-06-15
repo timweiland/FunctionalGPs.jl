@@ -35,6 +35,26 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     return ZeroPVCrosscov(output_shape(ℒ), argi)
 end
 
+# Disambiguate half-pinned multi-output SelectedKernels against the generic
+# AbstractLinearFunctional methods in base.jl and the k::Kernel method above.
+(ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+    sk::SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer};
+    arg = 2,
+) where {T} = (
+    (arg == 2)
+    ? MultiOutputPVCrosscov{2}(sk.parent, sk.pin2, ℒ)
+    : Select(sk.pin2)(ℒ(sk.parent; arg = 1))
+)
+
+(ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+    sk::SelectedKernel{<:MultiOutputKernel, <:Integer, Nothing};
+    arg = 2,
+) where {T} = (
+    (arg == 2)
+    ? Select(sk.pin1)(ℒ(sk.parent; arg = 2))
+    : MultiOutputPVCrosscov{1}(sk.parent, sk.pin1, ℒ)
+)
+
 function cancel_integral(
         k::DerivativeKernel1D{N, M},
         ℒ::VectorizedLebesgueIntegral{Interval{T}};

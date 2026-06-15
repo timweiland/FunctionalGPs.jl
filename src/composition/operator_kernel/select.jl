@@ -21,10 +21,10 @@ end
 # ambiguous with the generic operator methods for ScaledKernel / KernelSum /
 # LinearlyScaledKernel in base.jl.
 
-function (op::Select)(cc::EvaluationPVCrosscov{2, <:SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer}, <:EvaluationFunctional})
-    return cc.linfunc(_resolve(op(cc.k; arg = 1)), arg = 2)
-end
-
-function (op::Select)(cc::IntegralPVCrosscov{2, <:SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer}})
-    return VectorizedLebesgueIntegral(cc.domains)(_resolve(op(cc.k; arg = 1)); arg = 2)
+# Selecting the still-free output of a MultiOutputPVCrosscov pins the remaining
+# (process-side) output, so both outputs are now determined: resolve to the
+# single-output kernel block and apply the stored functional. For independent
+# outputs an off-diagonal block is the zero kernel, which assembles to zeros.
+function (op::Select)(pv::MultiOutputPVCrosscov)
+    return pv.linfunc(_resolved_block(pv, op.output); arg = randvar_arg(pv))
 end

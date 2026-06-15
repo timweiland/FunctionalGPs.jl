@@ -18,3 +18,23 @@ end
 
 (op::EvaluationFunctional)(k::LinearlyScaledKernel; kwargs...) =
     k.scalar * op(k.kernel; kwargs...)
+
+# Disambiguate half-pinned multi-output SelectedKernels against the generic
+# AbstractLinearFunctional methods in base.jl and the k::Kernel method above.
+(op::EvaluationFunctional)(
+    sk::SelectedKernel{<:MultiOutputKernel, Nothing, <:Integer};
+    arg = 2,
+) = (
+    (arg == 2)
+    ? MultiOutputPVCrosscov{2}(sk.parent, sk.pin2, op)
+    : Select(sk.pin2)(op(sk.parent; arg = 1))
+)
+
+(op::EvaluationFunctional)(
+    sk::SelectedKernel{<:MultiOutputKernel, <:Integer, Nothing};
+    arg = 2,
+) = (
+    (arg == 2)
+    ? Select(sk.pin1)(op(sk.parent; arg = 2))
+    : MultiOutputPVCrosscov{1}(sk.parent, sk.pin1, op)
+)
