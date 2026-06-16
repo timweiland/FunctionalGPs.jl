@@ -6,7 +6,7 @@ export MultiOutputPVCrosscov
 PV crosscov produced when a linear functional is applied to one argument of a
 [`MultiOutputKernel`](@ref) whose output on that argument has been pinned with
 [`Select`](@ref) — i.e. the crosscov-level analogue of a half-pinned
-[`SelectedKernel`](@ref).
+[`TransformedMultiOutputKernel`](@ref).
 
 A composition such as `EvaluationFunctional(X) ∘ Select(p)` pins output `p` on
 one argument (via `Select`) and consumes the spatial part of that same argument
@@ -14,7 +14,7 @@ one argument (via `Select`) and consumes the spatial part of that same argument
 process. The selection is embedded directly: the crosscov stores the underlying
 multi-output kernel together with the pinned output index `p`, with the argument
 it was pinned on carried as the type parameter `Arg`, rather than wrapping a
-`SelectedKernel`.
+`TransformedMultiOutputKernel`.
 
 The random-variable side is therefore an ordinary single-output crosscov, while
 the process side still carries a free output index. It is resolved by selecting
@@ -30,7 +30,7 @@ that output, collapsing to a single-output block via [`Select`](@ref).
 
 # See also
 - [`Select`](@ref): Pins the remaining output, resolving the crosscov to a block
-- [`MultiOutputKernel`](@ref), [`SelectedKernel`](@ref)
+- [`MultiOutputKernel`](@ref), [`TransformedMultiOutputKernel`](@ref)
 """
 struct MultiOutputPVCrosscov{A, TK <: MultiOutputKernel, TL <: AbstractLinearFunctional} <:
        ProcessVectorCrossCovariance

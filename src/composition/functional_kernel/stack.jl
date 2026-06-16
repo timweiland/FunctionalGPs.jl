@@ -27,3 +27,9 @@ end
 function (stacked::StackedLinearFunctional)(k::LinearlyScaledKernel; arg::Integer = 2)
     return k.scalar * stacked(k.kernel; arg = arg)
 end
+
+# Disambiguate against base.jl's (::AbstractLinearFunctional)(::TransformedMultiOutputKernel{<:MO}).
+# Defer the whole stacked functional into a MultiOutputPVCrosscov; it resolves to a
+# StackedPVCrosscov once the output is pinned and the block is a single-output kernel.
+(stacked::StackedLinearFunctional)(k::TransformedMultiOutputKernel{<:MultiOutputKernel}; arg::Integer = 2) =
+    _functional_on_transformed(stacked, k; arg = arg)

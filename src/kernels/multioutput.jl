@@ -75,32 +75,58 @@ function (k::BlockDiagonalKernel)((x, px)::Tuple, (y, py)::Tuple)
 end
 
 """
-    SelectedKernel(parent, pin1, pin2)
+    TransformedMultiOutputKernel{Arg}(parent, p, op)
 
-A multi-output kernel with zero, one, or both output arguments pinned to a
-concrete output index (`pin1` for argument 1, `pin2` for argument 2; `nothing`
-means not yet pinned). Produced by applying [`Select`](@ref) to a
-[`MultiOutputKernel`](@ref).
+A [`MultiOutputKernel`](@ref) with one output argument pinned *and* an arbitrary
+linear operator applied to that same argument. Argument `Arg` (`1` or `2`) is
+fixed to output `p` (by [`Select`](@ref)) and carries the linear operator `op`
+(the identity until a differential/scaling operator is composed onto it); the
+other argument is still a free multi-output process.
 
 This is the transient "half-pinned" representation the two-stage functional
-pipeline needs: the first functional pins one argument (and may differentiate
-it), and the second pins the other. Once both are pinned, every downstream
-operation forwards to the resolved single-output block (`_block(parent, pin1,
-pin2)`), so all the existing single-output fast paths fire unchanged.
+pipeline needs. Operators applied to the pinned argument *accumulate* into `op`
+symbolically rather than being applied to the multi-output parent eagerly — so a
+`PartialDerivative` is only ever evaluated once the output is pinned and the block
+is a single-output kernel, never differentiating every output of the parent at
+once. The functional that finally consumes the argument defers the whole thing
+(`functional ∘ op`) into a [`MultiOutputPVCrosscov`](@ref), which resolves to the
+single-output block `op(_block(parent, p₁, p₂))` once the other output is pinned.
 """
-struct SelectedKernel{K, P1, P2} <: Kernel
+struct TransformedMultiOutputKernel{K, Arg, Op} <: Kernel
     parent::K
-    pin1::P1
-    pin2::P2
+    p::Int
+    op::Op
+
+    # `Arg` is an `Int` value parameter, so it cannot carry a `<: Union{…}` bound
+    # the way a type parameter would; the guard is enforced here instead. Because
+    # `Arg` is a compile-time constant the branch is constant-folded away.
+    function TransformedMultiOutputKernel{K, Arg, Op}(
+            parent::K, p::Integer, op::Op,
+        ) where {K, Arg, Op}
+        (Arg === 1 || Arg === 2) ||
+            error("TransformedMultiOutputKernel pinned argument must be 1 or 2, got $Arg")
+        return new{K, Arg, Op}(parent, Int(p), op)
+    end
 end
 
-function _resolve(sk::SelectedKernel)
-    (sk.pin1 === nothing || sk.pin2 === nothing) && error(
-        "SelectedKernel is not fully resolved (pins: $(sk.pin1), $(sk.pin2)); " *
-            "both kernel arguments must be selected before a covariance can be assembled",
-    )
-    return _block(sk.parent, sk.pin1, sk.pin2)
-end
+TransformedMultiOutputKernel{Arg}(parent::K, p::Integer, op::Op) where {K, Arg, Op} =
+    TransformedMultiOutputKernel{K, Arg, Op}(parent, p, op)
 
+"""
+    pinned_arg(tmk::TransformedMultiOutputKernel) -> Int
 
-(sk::SelectedKernel)(x, y) = _resolve(sk)(x, y)
+The kernel argument (`1` or `2`) that `tmk` has pinned to a concrete output.
+"""
+pinned_arg(::TransformedMultiOutputKernel{K, Arg}) where {K, Arg} = Arg
+
+# A half-pinned kernel fixes one argument's output and leaves the other free, so
+# evaluating it as a covariance needs the free argument's output index, supplied
+# as a `(point, output)` tuple in that position (the pinned side stays a plain
+# point). This resolves the single-output block `_block(parent, p₁, p₂)`, applies
+# the stored operator to the pinned argument, and evaluates. With argument 2
+# pinned the free side is argument 1, i.e. `tmk((x, p), y)`; with argument 1
+# pinned it is argument 2, i.e. `tmk(x, (y, q))`.
+(tmk::TransformedMultiOutputKernel{<:Any, 2})((x, p)::Tuple, y) =
+    tmk.op(_block(tmk.parent, p, tmk.p); arg = 2)(x, y)
+(tmk::TransformedMultiOutputKernel{<:Any, 1})(x, (y, q)::Tuple) =
+    tmk.op(_block(tmk.parent, tmk.p, q); arg = 1)(x, y)
