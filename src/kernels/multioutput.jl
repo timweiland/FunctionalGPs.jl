@@ -75,13 +75,15 @@ function (k::BlockDiagonalKernel)((x, px)::Tuple, (y, py)::Tuple)
 end
 
 """
-    TransformedMultiOutputKernel{Arg}(parent, p, op)
+    TransformedMultiOutputKernel{Arg}(parent, op)
 
-A [`MultiOutputKernel`](@ref) with one output argument pinned *and* an arbitrary
-linear operator applied to that same argument. Argument `Arg` (`1` or `2`) is
-fixed to output `p` (by [`Select`](@ref)) and carries the linear operator `op`
-(the identity until a differential/scaling operator is composed onto it); the
-other argument is still a free multi-output process.
+A [`MultiOutputKernel`](@ref) with an arbitrary linear operator applied to one of
+its arguments. Argument `Arg` (`1` or `2`) carries the operator `op`; the other
+argument is still a free multi-output process. The output pin is *not* a separate
+field — it is carried by `op`: a bare pin is just `op === Select(p)`, so the type
+of a pinned-but-untransformed kernel is `TransformedMultiOutputKernel{K, Arg,
+<:Select}` and the pinned output is `op.output`. Differential/scaling operators
+compose onto `op` (the `Select` stays innermost), so `op` is `spatial ∘ Select(p)`.
 
 This is the transient "half-pinned" representation the two-stage functional
 pipeline needs. Operators applied to the pinned argument *accumulate* into `op`
@@ -89,44 +91,29 @@ symbolically rather than being applied to the multi-output parent eagerly — so
 `PartialDerivative` is only ever evaluated once the output is pinned and the block
 is a single-output kernel, never differentiating every output of the parent at
 once. The functional that finally consumes the argument defers the whole thing
-(`functional ∘ op`) into a [`MultiOutputPVCrosscov`](@ref), which resolves to the
-single-output block `op(_block(parent, p₁, p₂))` once the other output is pinned.
+into a [`MultiOutputPVCrosscov`](@ref), which resolves to the operator applied to
+the single-output block `_block(parent, p₁, p₂)` once the other output is pinned.
 """
 struct TransformedMultiOutputKernel{K, Arg, Op} <: Kernel
     parent::K
-    p::Int
     op::Op
 
     # `Arg` is an `Int` value parameter, so it cannot carry a `<: Union{…}` bound
     # the way a type parameter would; the guard is enforced here instead. Because
     # `Arg` is a compile-time constant the branch is constant-folded away.
-    function TransformedMultiOutputKernel{K, Arg, Op}(
-            parent::K, p::Integer, op::Op,
-        ) where {K, Arg, Op}
+    function TransformedMultiOutputKernel{K, Arg, Op}(parent::K, op::Op) where {K, Arg, Op}
         (Arg === 1 || Arg === 2) ||
             error("TransformedMultiOutputKernel pinned argument must be 1 or 2, got $Arg")
-        return new{K, Arg, Op}(parent, Int(p), op)
+        return new{K, Arg, Op}(parent, op)
     end
 end
 
-TransformedMultiOutputKernel{Arg}(parent::K, p::Integer, op::Op) where {K, Arg, Op} =
-    TransformedMultiOutputKernel{K, Arg, Op}(parent, p, op)
+TransformedMultiOutputKernel{Arg}(parent::K, op::Op) where {K, Arg, Op} =
+    TransformedMultiOutputKernel{K, Arg, Op}(parent, op)
 
 """
     pinned_arg(tmk::TransformedMultiOutputKernel) -> Int
 
-The kernel argument (`1` or `2`) that `tmk` has pinned to a concrete output.
+The kernel argument (`1` or `2`) that `tmk` carries an operator on.
 """
 pinned_arg(::TransformedMultiOutputKernel{K, Arg}) where {K, Arg} = Arg
-
-# A half-pinned kernel fixes one argument's output and leaves the other free, so
-# evaluating it as a covariance needs the free argument's output index, supplied
-# as a `(point, output)` tuple in that position (the pinned side stays a plain
-# point). This resolves the single-output block `_block(parent, p₁, p₂)`, applies
-# the stored operator to the pinned argument, and evaluates. With argument 2
-# pinned the free side is argument 1, i.e. `tmk((x, p), y)`; with argument 1
-# pinned it is argument 2, i.e. `tmk(x, (y, q))`.
-(tmk::TransformedMultiOutputKernel{<:Any, 2})((x, p)::Tuple, y) =
-    tmk.op(_block(tmk.parent, p, tmk.p); arg = 2)(x, y)
-(tmk::TransformedMultiOutputKernel{<:Any, 1})(x, (y, q)::Tuple) =
-    tmk.op(_block(tmk.parent, tmk.p, q); arg = 1)(x, y)

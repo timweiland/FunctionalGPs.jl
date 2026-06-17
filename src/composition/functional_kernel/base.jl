@@ -45,10 +45,11 @@ function _functional_on_transformed(
         tmk::TransformedMultiOutputKernel{K, Arg};
         arg = 2,
     ) where {K <: MultiOutputKernel, Arg}
-    combined = _compose_functional(ℒ, tmk.op)
+    combined = _compose_functional(ℒ, spatial_op(tmk))
+    p = pinned_output(tmk)
     return (arg == Arg) ?
-        MultiOutputPVCrosscov{Arg}(tmk.parent, tmk.p, combined) :
-        Select(tmk.p)(combined(tmk.parent; arg = arg))
+        MultiOutputPVCrosscov{Arg}(tmk.parent, p, combined) :
+        Select(p)(combined(tmk.parent; arg = arg))
 end
 
 (ℒ::AbstractLinearFunctional)(tmk::TransformedMultiOutputKernel{<:MultiOutputKernel}; arg = 2) =
