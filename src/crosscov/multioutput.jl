@@ -32,18 +32,17 @@ that output, collapsing to a single-output block via [`Select`](@ref).
 - [`Select`](@ref): Pins the remaining output, resolving the crosscov to a block
 - [`MultiOutputKernel`](@ref), [`TransformedMultiOutputKernel`](@ref)
 """
-struct MultiOutputPVCrosscov{A, TK <: MultiOutputKernel, TL <: AbstractLinearFunctional} <:
-       ProcessVectorCrossCovariance
+struct MultiOutputPVCrosscov{A, TK <: MultiOutputKernel, TL <: AbstractLinearFunctional} <: ProcessVectorCrossCovariance
     k::TK
     p::Int
     linfunc::TL
 end
 
 function MultiOutputPVCrosscov{A}(
-    k::MultiOutputKernel,
-    p::Integer,
-    linfunc::AbstractLinearFunctional,
-) where {A}
+        k::MultiOutputKernel,
+        p::Integer,
+        linfunc::AbstractLinearFunctional,
+    ) where {A}
     @assert A ∈ (1, 2) "arg must be 1 or 2, got $arg"
     @assert 1 ≤ p ≤ n_outputs(k) "output $p out of range for $(n_outputs(k))-output kernel"
     return MultiOutputPVCrosscov{A, typeof(k), typeof(linfunc)}(k, Int(p), linfunc)
