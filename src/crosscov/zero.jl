@@ -15,9 +15,7 @@ struct ZeroPVCrosscov <: ProcessVectorCrossCovariance
     function ZeroPVCrosscov(batch_size::Tuple, randvar_arg::Integer)
         argi = Int(randvar_arg)
         @assert argi ∈ (1, 2)
-        # Flatten to a 1-tuple so the batch size matches the non-zero crosscovs it
-        # is summed/stacked against (e.g. a TensorProductCrosscov sibling block).
-        return new((prod(Int.(batch_size)),), argi)
+        return new(Tuple(Int.(batch_size)), argi)
     end
 end
 

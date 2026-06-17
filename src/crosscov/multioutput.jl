@@ -50,12 +50,7 @@ end
 
 randvar_arg(::MultiOutputPVCrosscov{A}) where {A} = A
 
-# Only the pinned output's functional is fixed, so the random vector is exactly
-# the functional's own output. The batch size is flattened to a 1-tuple to match
-# the crosscovs this resolves to (e.g. TensorProductCrosscov for a tensor-product
-# functional over a separable block), so sums/stacks of resolved and unresolved
-# crosscovs agree.
-randvar_batch_size(pv::MultiOutputPVCrosscov) = (prod(output_shape(pv.linfunc)),)
+randvar_batch_size(pv::MultiOutputPVCrosscov) = output_shape(pv.linfunc)
 
 # The single-output kernel block coupling the pinned output to the free-side
 # output `q`, with `q` placed on the (currently free) process argument.
