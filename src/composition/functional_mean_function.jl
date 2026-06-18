@@ -11,7 +11,11 @@ _functional_mean_fn_fallback(ℒ::AbstractSumLinearFunctional, args...; kwargs..
 _functional_mean_fn_fallback(ℒ::ScaledLinearFunctional, args...; kwargs...) = _scale_crosscov_impl(ℒ, args...; kwargs...)
 
 _functional_mean_fn_fallback(ℒ::StackedLinearFunctional, m, args...; kwargs...) = begin
-    results = [lf(m, args...; kwargs...) for lf in ℒ.linfunctionals]
+    # Flatten each component before stacking: components may return arrays of
+    # differing shape (e.g. a flat `Fill` from a `ConstMean` vs. a multi-axis
+    # `zeros(output_shape...)` from a `ZeroMean`), which `vcat` cannot combine
+    # unless reduced to vectors first.
+    results = [vec(lf(m, args...; kwargs...)) for lf in ℒ.linfunctionals]
     return vcat(results...)
 end
 
