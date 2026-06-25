@@ -16,7 +16,7 @@ _functional_mean_fn_fallback(ℒ::StackedLinearFunctional, m, args...; kwargs...
     # `zeros(output_shape...)` from a `ZeroMean`), which `vcat` cannot combine
     # unless reduced to vectors first.
     results = [vec(lf(m, args...; kwargs...)) for lf in ℒ.linfunctionals]
-    return vcat(results...)
+    return mortar(results)
 end
 
 # Any linear functional applied to the zero function is zero.
