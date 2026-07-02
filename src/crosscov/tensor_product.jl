@@ -109,7 +109,7 @@ struct TensorProductCrosscov{N} <: AbstractTensorProductCrosscov
     end
 end
 
-randvar_batch_size(op::TensorProductCrosscov) = (prod(randvar_length.(factors(op))),)
+randvar_batch_size(op::TensorProductCrosscov) = randvar_length.(factors(op))
 randvar_arg(op::TensorProductCrosscov) = randvar_arg(factors(op)[1])
 
 function TensorProductCrosscov(factors...)

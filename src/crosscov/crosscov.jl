@@ -136,6 +136,7 @@ include("zero.jl")
 include("evaluation.jl")
 include("integral.jl")
 include("stacked.jl")
+include("multioutput.jl")
 
 # Arithmetic operations on crosscovs
 include("tensor_product.jl")
