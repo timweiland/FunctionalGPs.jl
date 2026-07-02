@@ -20,13 +20,23 @@ function (op::PartialDerivative{1, 1})(k::KernelSum; kwargs...)
     return KernelSum(map(kernel -> op(kernel; kwargs...), k.kernels))
 end
 
-function (op::PartialDerivative)(sk::SelectedKernel; arg::Integer = 2)
-    return SelectedKernel(op(sk.parent; arg = arg), sk.pin1, sk.pin2)
-end
-
 function (op::PartialDerivative)(dk::BlockDiagonalKernel; arg::Integer = 2)
     return BlockDiagonalKernel(map(k -> op(k; arg = arg), dk.kernels))
 end
+
+# Any derivative of the zero kernel is the zero kernel (e.g. the off-diagonal block
+# of an independent multi-output kernel under a derivative observation).
+(op::PartialDerivative)(k::ZeroKernel; arg::Integer = 2) = k
+(op::PartialDerivative{1, 1})(k::ZeroKernel; arg::Integer = 2) = k
+
+# On a half-pinned kernel a derivative is not applied to every output eagerly; it
+# accumulates onto the pinned argument's operator and is evaluated later on the
+# resolved single-output block (the `{1, 1}` method disambiguates against the
+# `k::Kernel` derivative path below).
+(op::PartialDerivative)(tmk::TransformedMultiOutputKernel; arg::Integer = 2) =
+    _accumulate_op(op, tmk)
+(op::PartialDerivative{1, 1})(tmk::TransformedMultiOutputKernel; arg::Integer = 2) =
+    _accumulate_op(op, tmk)
 
 function (op::PartialDerivative{1, 1})(
         k::Kernel;
@@ -56,11 +66,6 @@ function (op::PartialDerivative{1, 1})(
         arg::Integer = 2,
     )
     return LinearlyScaledKernel(op(k.kernel; arg = arg), k.scalar)
-end
-
-# Disambiguation for SelectedKernel
-function (op::PartialDerivative{1, 1})(sk::SelectedKernel; arg::Integer = 2)
-    return SelectedKernel(op(sk.parent; arg = arg), sk.pin1, sk.pin2)
 end
 
 # Disambiguation for BlockDiagonalKernel

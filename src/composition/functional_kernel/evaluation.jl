@@ -18,3 +18,6 @@ end
 
 (op::EvaluationFunctional)(k::LinearlyScaledKernel; kwargs...) =
     k.scalar * op(k.kernel; kwargs...)
+
+(op::EvaluationFunctional)(sk::TransformedMultiOutputKernel{<:MultiOutputKernel}; arg = 2) =
+    _functional_on_transformed(op, sk; arg = arg)

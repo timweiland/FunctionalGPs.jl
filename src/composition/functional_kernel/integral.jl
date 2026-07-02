@@ -35,6 +35,12 @@ function (ℒ::VectorizedLebesgueIntegral{Interval{T}})(
     return ZeroPVCrosscov(output_shape(ℒ), argi)
 end
 
+# Disambiguation for TransformedMultiOutputKernel
+(ℒ::VectorizedLebesgueIntegral{Interval{T}})(
+    sk::TransformedMultiOutputKernel{<:MultiOutputKernel};
+    arg = 2,
+) where {T} = _functional_on_transformed(ℒ, sk; arg = arg)
+
 function cancel_integral(
         k::DerivativeKernel1D{N, M},
         ℒ::VectorizedLebesgueIntegral{Interval{T}};

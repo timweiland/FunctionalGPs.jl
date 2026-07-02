@@ -71,6 +71,12 @@ end
 function (op::ConstantScaledLinearFunctionOperator)(k::Kernel, args...; kwargs...)
     return _scaled_kernel(linfuncop(op)(k, args...; kwargs...), op.scalar)
 end
+# On a half-pinned kernel, a scaled operator accumulates onto the pinned argument's
+# operator (evaluated later on the resolved single-output block) rather than scaling
+# every output eagerly.
+(op::ConstantScaledLinearFunctionOperator)(
+    tmk::TransformedMultiOutputKernel; arg::Integer = 2,
+) = _accumulate_op(op, tmk)
 function (op::ConstantScaledLinearFunctionOperator)(k::KernelSum, args...; kwargs...)
     return _scaled_kernel(linfuncop(op)(k, args...; kwargs...), op.scalar)
 end

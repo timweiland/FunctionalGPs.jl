@@ -12,3 +12,5 @@ end
     _scale_kernel_impl(op, k, args...; kwargs...)
 (op::ScaledLinearFunctional)(k::LinearlyScaledKernel, args...; kwargs...) =
     _scale_kernel_impl(op, k, args...; kwargs...)
+(op::ScaledLinearFunctional)(k::TransformedMultiOutputKernel{<:MultiOutputKernel}; arg = 2) =
+    _scale_kernel_impl(op, k; arg = arg)
